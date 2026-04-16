@@ -1,0 +1,30 @@
+name: Deploy API to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Login no Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PASS }}
+
+    - name: Construir e Enviar Imagem Docker
+      run: |
+        docker build -t ${{ secrets.DOCKER_USER }}/oportunia-api:latest .
+        docker push ${{ secrets.DOCKER_USER }}/oportunia-api:latest
+
+    - name: Deploy no Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'app-oportunia-67g5yzourkqaa' 
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+        images: '${{ secrets.DOCKER_USER }}/oportunia-api:latest'

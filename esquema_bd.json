@@ -1,0 +1,16 @@
+{
+  "Colecao_Vagas": {
+    "id_vaga": "string",
+    "titulo": "string",
+    "empresa": "string",
+    "local": "string",
+    "fonte": "string",
+    "data_publicacao": "string"
+  },
+  "Colecao_Utilizadores": {
+    "nome": "string",
+    "email": "string",
+    "competencias_tecnicas": ["string"],
+    "localizacao_preferida": "string"
+  }
+}
