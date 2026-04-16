@@ -20,7 +20,7 @@ def guardar_perfil():
     # Recebe os dados do Frontend (Bernardo) e guarda na base de dados
     dados_utilizador = request.json
     db["Utilizadores"].insert_one(dados_utilizador)
-    return jsonify({"mensagem": "Perfil guardado com sucesso!"}), 201
+    return jsonify({"mensagem": "O perfil foi guardado com sucesso!"}), 201
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)
