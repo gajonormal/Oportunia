@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, render_template
-from pymongo import MongoClient, collection
+from pymongo import MongoClient
 import os
 
 app = Flask(__name__)
@@ -38,16 +38,17 @@ def oportunidades():
 def perfil():
     return render_template('perfil.html', nome_utilizador="Bernardo")
 
+# Endpoint da API pura
+@app.route('/api/vagas', methods=['GET'])
+def get_vagas_api():
+    try:
+        vagas_db = db["Vagas"].find({}, {'_id': 0})
+        vagas_lista = list(vagas_db)
+    except Exception as e:
+        return jsonify({"erro": str(e)}), 500
+
+    return jsonify(vagas_lista)
+
 if __name__ == '__main__':
     # O use_reloader=False evita aquele erro do Windows que tiveste há bocado!
     app.run(host='0.0.0.0', port=8000, debug=True, use_reloader=False)
-
-#Endpoint da API pura
-@app.route('/api/vagas', methods=['GET'])
-def get_vagas_api():
-    # Lógica igual à que já tens para ler da base de dados
-    vagas_db = collection.find({}, {'_id': 0}) 
-    vagas_lista = list(vagas_db)
-    
-    # Em vez de renderizar HTML, devolve o JSON puro
-    return jsonify(vagas_lista)
