@@ -30,7 +30,7 @@ resource webApp 'Microsoft.Web/sites@2022-09-01' = {
   }
 }
 
-// 3. CosmosDB (Base de dados NoSQL - API MongoDB)
+// 3. CosmosDB (Base de dados NoSQL - API MongoDB - MODO SERVERLESS)
 resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
   name: 'cosmos-oportunia-${uniqueSuffix}'
   location: location
@@ -41,6 +41,11 @@ resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
       {
         locationName: location
         failoverPriority: 0
+      }
+    ]
+    capabilities: [
+      {
+        name: 'EnableServerless' // Ativa o modo de faturação Serverless
       }
     ]
   }
