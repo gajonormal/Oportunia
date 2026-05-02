@@ -4,7 +4,7 @@ import os
 
 app = Flask(__name__)
 
-MONGO_URI = os.environ.get("LIGACAO_COSMOS", "mongodb://cosmos-oportunia-67g5yzourkqaa:H1CxqnwKIj1ow9E3l2Pezdimyz3VY2T2YhXbYrzPLRbPrGVuHszjSaxsf2yzklOWfEP8i7tjPhlqACDbZjmPQg==@cosmos-oportunia-67g5yzourkqaa.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@cosmos-oportunia-67g5yzourkqaa@")
+MONGO_URI = os.environ.get("LIGACAO_COSMOS", "mongodb://cosmos-oportunia-67g5yzourkqaa:4BD2G3C0yMkuOiTzxFrXcFaCZZhRPdDR73hLixvEmNj7yzwbFvP0rbq8Ysh6z3lbAwLfLDiHNlgNACDbzNha1A==@cosmos-oportunia-67g5yzourkqaa.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@cosmos-oportunia-67g5yzourkqaa@")
 client = MongoClient(MONGO_URI, tlsAllowInvalidCertificates=True)
 db = client["OportuniaDB"]
 
