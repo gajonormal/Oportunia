@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oportunidades - Oportunia</title>
+    <meta name="description" content="Oportunidades de emprego, estágio, mestrado e erasmus personalizadas para o teu perfil, recomendadas com IA.">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link
@@ -26,15 +27,14 @@
             font-family: var(--font-body);
             background-color: hsl(var(--background));
             color: hsl(var(--foreground));
-            overflow-y: scroll; /* reserva sempre o espaço da scrollbar — evita shift ao trocar de tab */
+            overflow-y: scroll;
         }
 
-        h1,
-        h2,
-        h3 {
+        h1, h2, h3 {
             font-family: var(--font-heading);
         }
 
+        /* ── Cards ── */
         .card-elevated {
             background: white;
             box-shadow: var(--shadow-card);
@@ -44,9 +44,26 @@
 
         .card-elevated:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
         }
 
+        /* ── Score badge ── */
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .score-high   { background: hsl(142 60% 92%); color: hsl(142 50% 28%); border: 1px solid hsl(142 40% 80%); }
+        .score-medium { background: hsl(38 90% 93%);  color: hsl(38 70% 32%);  border: 1px solid hsl(38 60% 78%); }
+        .score-low    { background: hsl(210 20% 94%); color: hsl(210 20% 40%); border: 1px solid hsl(210 20% 84%); }
+
+        /* ── Tabs ── */
         .tab-content {
             display: none;
             min-height: 60vh;
@@ -58,18 +75,24 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(5px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Modal */
+        /* ── Skeleton loader ── */
+        .skeleton {
+            background: linear-gradient(90deg, hsl(210 20% 92%) 25%, hsl(210 20% 96%) 50%, hsl(210 20% 92%) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 0.5rem;
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── Modal ── */
         #modal-overlay {
             display: none;
             position: fixed;
@@ -88,13 +111,8 @@
         }
 
         @keyframes overlayIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to   { opacity: 1; }
         }
 
         #modal-box {
@@ -109,31 +127,15 @@
         }
 
         @keyframes modalIn {
-            from {
-                opacity: 0;
-                transform: scale(0.96) translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
+            from { opacity: 0; transform: scale(0.96) translateY(8px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* Scrollbar discreta no modal */
-        #modal-box::-webkit-scrollbar {
-            width: 4px;
-        }
+        #modal-box::-webkit-scrollbar { width: 4px; }
+        #modal-box::-webkit-scrollbar-track { background: transparent; }
+        #modal-box::-webkit-scrollbar-thumb { background: hsl(210 20% 88%); border-radius: 2px; }
 
-        #modal-box::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        #modal-box::-webkit-scrollbar-thumb {
-            background: hsl(210 20% 88%);
-            border-radius: 2px;
-        }
-
+        /* ── Chips ── */
         .chip {
             display: inline-flex;
             align-items: center;
@@ -157,6 +159,7 @@
             border-color: hsl(210 20% 88%);
         }
 
+        /* ── Requisitos ── */
         .req-item {
             display: flex;
             align-items: center;
@@ -167,15 +170,35 @@
             font-weight: 500;
         }
 
-        .req-item svg {
-            flex-shrink: 0;
-            color: hsl(203 42% 45%);
+        .req-item svg { flex-shrink: 0; color: hsl(203 42% 45%); }
+
+        /* ── AI loading banner ── */
+        @keyframes pulse-dot {
+            0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+            40%            { opacity: 1;   transform: scale(1); }
+        }
+
+        .dot-1 { animation: pulse-dot 1.2s ease-in-out infinite 0s; }
+        .dot-2 { animation: pulse-dot 1.2s ease-in-out infinite 0.2s; }
+        .dot-3 { animation: pulse-dot 1.2s ease-in-out infinite 0.4s; }
+
+        @keyframes shimmer-banner {
+            100% { transform: translateX(100%); }
+        }
+
+        /* ── Banner perfil incompleto ── */
+        .banner-warning {
+            background: linear-gradient(135deg, hsl(38 90% 96%), hsl(38 80% 92%));
+            border: 1px solid hsl(38 70% 82%);
+            border-radius: 0.75rem;
+            padding: 0.875rem 1.25rem;
         }
     </style>
 </head>
 
 <body class="min-h-screen bg-slate-50">
 
+    <!-- ── Navbar ── -->
     <nav class="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-lg border-slate-200">
         <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-16">
 
@@ -212,7 +235,7 @@
                     </svg>
                     Perfil
                 </a>
-                <a href="/"
+                <a href="/logout"
                     class="ml-2 flex items-center justify-center gap-2 w-[104px] py-2 rounded-lg text-sm font-medium text-red-600 bg-red-50 shadow-sm border border-red-100 hover:bg-red-100 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -227,19 +250,38 @@
 
     <div class="max-w-5xl mx-auto px-4 py-8">
 
-        <div class="mb-8">
+        <!-- ── Cabeçalho ── -->
+        <div class="mb-6">
             <div class="flex items-center gap-2 mb-1">
-                <svg class="w-5 h-5" style="color: hsl(var(--primary));" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
+                <svg class="w-5 h-5" style="color: hsl(var(--primary));" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.143-7.714L1 12l6.857-2.286L11 3z">
                     </path>
                 </svg>
-                <h1 class="text-2xl font-bold font-heading text-slate-900">Oportunidades para Ti</h1>
+                <h1 class="text-2xl font-bold text-slate-900">Oportunidades para Ti</h1>
             </div>
             <p class="text-sm text-slate-500">Recomendações personalizadas com base no teu perfil e interesses.</p>
         </div>
 
+        <!-- ── Banner: perfil incompleto (hidden por defeito, mostrado via JS) ── -->
+        <div id="banner-perfil-incompleto" class="banner-warning mb-5 hidden">
+            <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 mt-0.5 flex-shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z">
+                    </path>
+                </svg>
+                <div>
+                    <p class="text-sm font-semibold text-amber-800">Perfil incompleto</p>
+                    <p class="text-xs text-amber-700 mt-0.5">
+                        Para recomendações mais precisas, adiciona as tuas competências técnicas, cadeiras favoritas e preferências.
+                        <a href="/perfil" class="underline font-semibold hover:text-amber-900">Completar perfil →</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Tabs ── -->
         <div class="flex space-x-1 bg-slate-200/60 p-1 rounded-lg w-max mb-6">
             <button onclick="switchTab('feed')" id="btn-feed"
                 class="px-4 py-1.5 text-sm font-semibold rounded-md bg-white shadow-sm text-slate-900 flex items-center gap-2 transition-all" aria-selected="true">
@@ -262,8 +304,10 @@
             </button>
         </div>
 
+        <!-- ════════════════ TAB: FEED ════════════════ -->
         <div id="tab-feed" class="tab-content active">
 
+            <!-- Barra de pesquisa (visual, não funcional ainda) -->
             <div class="flex flex-col sm:flex-row gap-3 mb-6">
                 <div class="relative flex-1">
                     <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none"
@@ -271,86 +315,130 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
-                    <input type="text" placeholder="Pesquisar vagas, empresas ou tags..."
+                    <input id="input-pesquisa" type="text" placeholder="Pesquisar vagas, empresas ou tags..."
+                        oninput="filtrarCards()"
                         class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] bg-white">
                 </div>
-                <select
+                <select id="filtro-tipo" onchange="filtrarCards()"
                     class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]">
-                    <option>Todos os tipos</option>
-                    <option>Estágio</option>
-                    <option>Emprego</option>
-                    <option>Bolsa</option>
-                </select>
-                <select
-                    class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))]">
-                    <option>Todas as localizações</option>
-                    <option>Remoto</option>
-                    <option>Castelo Branco</option>
-                    <option>Lisboa</option>
+                    <option value="">Todos os tipos</option>
+                    <option value="Estágio">Estágio</option>
+                    <option value="Emprego">Emprego</option>
+                    <option value="Mestrado">Mestrado</option>
+                    <option value="Erasmus">Erasmus</option>
+                    <option value="Bolsa">Bolsa</option>
                 </select>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2">
-                {% for vaga in vagas %}
-                <div class="card-elevated rounded-xl p-5 border border-slate-200 flex flex-col">
-
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="font-bold text-base leading-tight text-slate-900">{{ vaga.titulo | default('Vaga de Engenharia') }}</h3>
-                        <span
-                            class="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-100 whitespace-nowrap ml-2">
-                            {{ vaga.fonte | default('Fonte desconhecida') }}
-                        </span>
-                    </div>
-
-                    <p class="text-sm text-slate-500 mb-4 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
-                            </path>
-                        </svg>
-                        {{ vaga.local | default('Localização não definida') }}
-                    </p>
-
-                    <div class="mt-auto pt-4 border-t border-slate-100">
-                        <p class="text-[10px] font-extrabold uppercase mb-1 flex items-center gap-1"
-                            style="color: hsl(var(--primary));">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round"></path>
+            <!-- Banner: a personalizar com IA -->
+            <div id="banner-ia-loading" class="hidden mb-6 relative overflow-hidden rounded-xl border border-indigo-100 shadow-sm">
+                <!-- Background gradient animado -->
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-50 via-white to-blue-50 opacity-90"></div>
+                <!-- Shimmer animado por cima -->
+                <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/60 to-transparent w-[200%] animate-[shimmer-banner_2s_infinite]"></div>
+                
+                <div class="relative px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <!-- Ícone brilhante -->
+                        <div class="relative flex items-center justify-center w-10 h-10 rounded-full bg-indigo-100/50">
+                            <div class="absolute inset-0 rounded-full animate-ping bg-indigo-200/50 opacity-75"></div>
+                            <svg class="w-5 h-5 text-indigo-600 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
-                            Análise IA
-                        </p>
-                        <p class="text-xs text-slate-600 line-clamp-2 mb-4">
-                            {{ vaga.justificacao_ai | default('Recomendado com base nas tuas competências tecnológicas.') }}
-                        </p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-sm">Oportunia IA em ação</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">A processar o teu perfil e a gerar justificações personalizadas...</p>
+                        </div>
                     </div>
-
-                    <button data-vaga='{{ vaga | tojson | safe }}'
-                        onclick="openModal(JSON.parse(this.getAttribute('data-vaga')))"
-                        class="w-full mt-2 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-semibold transition-colors bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 cursor-pointer">
-                        Ver Detalhes
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
-                            </path>
-                        </svg>
-                    </button>
+                    
+                    <!-- Dots animadas -->
+                    <div class="flex gap-1.5 items-center bg-white/60 px-3 py-1.5 rounded-full border border-indigo-50">
+                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 dot-1 inline-block"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 dot-2 inline-block"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 dot-3 inline-block"></span>
+                    </div>
                 </div>
-                {% else %}
-                <div class="col-span-full text-center py-16 text-slate-500">
-                    <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
-                        </path>
-                    </svg>
-                    <p class="font-bold text-slate-900">Nenhuma oportunidade encontrada</p>
-                    <p class="text-sm mt-1">A base de dados ainda não tem resultados ou os filtros são demasiado
-                        restritos.</p>
-                </div>
-                {% endfor %}
             </div>
-        </div>
 
+            <!-- Estado: a carregar (skeleton) -->
+            <div id="estado-loading" class="grid gap-4 sm:grid-cols-2">
+                <!-- 4 skeleton cards -->
+                <div class="card-elevated rounded-xl p-5 border border-slate-200 flex flex-col gap-3">
+                    <div class="flex justify-between">
+                        <div class="skeleton h-5 w-2/3"></div>
+                        <div class="skeleton h-5 w-14 rounded-full"></div>
+                    </div>
+                    <div class="skeleton h-4 w-1/2"></div>
+                    <div class="skeleton h-16 w-full mt-2"></div>
+                    <div class="skeleton h-9 w-full rounded-lg mt-auto"></div>
+                </div>
+                <div class="card-elevated rounded-xl p-5 border border-slate-200 flex flex-col gap-3">
+                    <div class="flex justify-between">
+                        <div class="skeleton h-5 w-3/5"></div>
+                        <div class="skeleton h-5 w-14 rounded-full"></div>
+                    </div>
+                    <div class="skeleton h-4 w-2/5"></div>
+                    <div class="skeleton h-16 w-full mt-2"></div>
+                    <div class="skeleton h-9 w-full rounded-lg mt-auto"></div>
+                </div>
+                <div class="card-elevated rounded-xl p-5 border border-slate-200 flex flex-col gap-3 hidden sm:flex">
+                    <div class="flex justify-between">
+                        <div class="skeleton h-5 w-1/2"></div>
+                        <div class="skeleton h-5 w-14 rounded-full"></div>
+                    </div>
+                    <div class="skeleton h-4 w-1/3"></div>
+                    <div class="skeleton h-16 w-full mt-2"></div>
+                    <div class="skeleton h-9 w-full rounded-lg mt-auto"></div>
+                </div>
+                <div class="card-elevated rounded-xl p-5 border border-slate-200 flex flex-col gap-3 hidden sm:flex">
+                    <div class="flex justify-between">
+                        <div class="skeleton h-5 w-3/4"></div>
+                        <div class="skeleton h-5 w-14 rounded-full"></div>
+                    </div>
+                    <div class="skeleton h-4 w-1/2"></div>
+                    <div class="skeleton h-16 w-full mt-2"></div>
+                    <div class="skeleton h-9 w-full rounded-lg mt-auto"></div>
+                </div>
+            </div>
+
+
+
+            <!-- Estado: erro -->
+            <div id="estado-erro" class="hidden text-center py-16 text-slate-500">
+                <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z">
+                    </path>
+                </svg>
+                <p class="font-bold text-slate-900">Erro ao carregar oportunidades</p>
+                <p class="text-sm mt-1" id="texto-erro">Tenta novamente mais tarde.</p>
+                <button onclick="carregarRecomendacoes()" class="mt-4 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 transition-colors">
+                    Tentar novamente
+                </button>
+            </div>
+
+            <!-- Estado: sem vagas -->
+            <div id="estado-vazio" class="hidden col-span-full text-center py-16 text-slate-500">
+                <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                    </path>
+                </svg>
+                <p class="font-bold text-slate-900">Nenhuma oportunidade encontrada</p>
+                <p class="text-sm mt-1">A base de dados ainda não tem resultados ou os filtros são demasiado restritos.</p>
+            </div>
+
+            <!-- Estado: cards carregados -->
+            <div id="grid-vagas" class="hidden grid gap-4 sm:grid-cols-2">
+                <!-- Preenchido via JS -->
+            </div>
+
+        </div>
+        <!-- ════════════════ FIM TAB FEED ════════════════ -->
+
+
+        <!-- ════════════════ TAB: RELATÓRIOS ════════════════ -->
         <div id="tab-reports" class="tab-content">
             <div class="max-w-2xl">
                 <h2 class="font-heading font-bold text-lg mb-4">Relatórios Semanais</h2>
@@ -359,8 +447,7 @@
                     funcionalidade será gerida pelas Azure Functions e Blob Storage.
                 </p>
 
-                <div
-                    class="card-elevated rounded-xl p-4 flex items-center justify-between border border-slate-200 bg-white mb-3">
+                <div class="card-elevated rounded-xl p-4 flex items-center justify-between border border-slate-200 bg-white mb-3">
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 rounded bg-red-50 text-red-500 flex items-center justify-center">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -374,18 +461,18 @@
                             <p class="text-xs text-slate-500">Gerado há 2 horas • 1.2 MB</p>
                         </div>
                     </div>
-                    <button
-                        class="text-sm font-medium px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
+                    <button class="text-sm font-medium px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
                         Descarregar
                     </button>
                 </div>
             </div>
         </div>
+        <!-- ════════════════ FIM TAB RELATÓRIOS ════════════════ -->
 
     </div>
 
 
-    <!-- ===================== MODAL ===================== -->
+    <!-- ════════════════ MODAL ════════════════ -->
     <div id="modal-overlay" onclick="handleOverlayClick(event)">
         <div id="modal-box">
 
@@ -414,7 +501,7 @@
                         <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round"></path>
                     </svg>
-                    Porquê esta vaga?
+                    Porquê esta oportunidade?
                 </p>
                 <p id="modal-ia" class="text-sm text-slate-600"></p>
             </div>
@@ -457,31 +544,206 @@
             </div>
         </div>
     </div>
-    <!-- ================================================= -->
+    <!-- ════════════════ FIM MODAL ════════════════ -->
 
 
     <script>
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById('btn-feed').className = "px-4 py-1.5 text-sm font-semibold rounded-md text-slate-500 opacity-60 hover:opacity-100 flex items-center gap-2 transition-all";
-            document.getElementById('btn-reports').className = "px-4 py-1.5 text-sm font-semibold rounded-md text-slate-500 opacity-60 hover:opacity-100 flex items-center gap-2 transition-all";
-            document.getElementById('tab-' + tabId).classList.add('active');
-            document.getElementById('btn-' + tabId).className = "px-4 py-1.5 text-sm font-semibold rounded-md bg-white shadow-sm text-slate-900 opacity-100 flex items-center gap-2 transition-all";
+        // ── Dados globais ──
+        let vagasCarregadas = [];
+        let aiLoaderTimer = null;
+
+        // ════════════════════════════════
+        // Carregar recomendações via IA
+        // ════════════════════════════════
+        async function carregarRecomendacoes() {
+            // Reset estados
+            document.getElementById('estado-loading').classList.remove('hidden');
+            document.getElementById('estado-erro').classList.add('hidden');
+            document.getElementById('estado-vazio').classList.add('hidden');
+            document.getElementById('grid-vagas').classList.add('hidden');
+            document.getElementById('grid-vagas').classList.remove('grid');
+            
+            // Só mostrar o banner IA se demorar mais de 500ms (indicando que não veio da cache)
+            aiLoaderTimer = setTimeout(() => {
+                document.getElementById('banner-ia-loading').classList.remove('hidden');
+            }, 500);
+
+            try {
+                const res = await fetch('/api/recomendacoes');
+
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!res.ok) {
+                    throw new Error(`Erro ${res.status}`);
+                }
+
+                const dados = await res.json();
+
+                // Limpar timeout do banner IA e escondê-lo se estiver visível
+                clearTimeout(aiLoaderTimer);
+                document.getElementById('banner-ia-loading').classList.add('hidden');
+                document.getElementById('estado-loading').classList.add('hidden');
+
+                // Logging de diagnóstico
+                if (dados.erro_ia) {
+                    console.warn('[Oportunia IA] Erro na chamada à IA:', dados.erro_ia);
+                } else {
+                    console.log('[Oportunia IA] Vagas com análise IA:', dados.vagas?.filter(v => v.score_ia > 0).length, '/', dados.vagas?.length);
+                }
+
+                // Aviso perfil incompleto
+                if (!dados.perfil_completo) {
+                    document.getElementById('banner-perfil-incompleto').classList.remove('hidden');
+                }
+
+                if (!dados.vagas || dados.vagas.length === 0) {
+                    document.getElementById('estado-vazio').classList.remove('hidden');
+                    return;
+                }
+
+                vagasCarregadas = dados.vagas;
+                renderizarCards(vagasCarregadas);
+
+            } catch (err) {
+                clearTimeout(aiLoaderTimer);
+                document.getElementById('banner-ia-loading').classList.add('hidden');
+                document.getElementById('estado-loading').classList.add('hidden');
+                document.getElementById('estado-erro').classList.remove('hidden');
+                document.getElementById('texto-erro').textContent = err.message || 'Tenta novamente mais tarde.';
+            }
         }
 
+        // ════════════════════════════════
+        // Renderizar cards
+        // ════════════════════════════════
+        function scoreClass(score) {
+            if (score >= 7) return 'score-high';
+            if (score >= 4) return 'score-medium';
+            return 'score-low';
+        }
+
+        function scoreLabel(score) {
+            if (score >= 7) return '★ Excelente match';
+            if (score >= 4) return '◎ Bom match';
+            return '○ Match parcial';
+        }
+
+        function renderizarCards(vagas) {
+            const grid = document.getElementById('grid-vagas');
+            grid.innerHTML = '';
+
+            if (vagas.length === 0) {
+                document.getElementById('estado-vazio').classList.remove('hidden');
+                return;
+            }
+
+            vagas.forEach((vaga, idx) => {
+                // score_ia pode ser 0 (sem IA) — NÃO usar || 5 pois 0 é falsy
+                const score = (typeof vaga.score_ia === 'number') ? vaga.score_ia : 0;
+                const localizacao = vaga.local || vaga.localizacao || 'Localização não definida';
+                // justificacao_ai vazia = sem análise IA (não mostrar texto genérico)
+                const justificacao = vaga.justificacao_ai || '';
+                const fonte = vaga.fonte || '';
+                const titulo = vaga.titulo || 'Oportunidade';
+
+                const card = document.createElement('div');
+                card.className = 'card-elevated rounded-xl p-5 border border-slate-200 flex flex-col';
+                card.dataset.titulo = titulo.toLowerCase();
+                card.dataset.tipo = (vaga.tipo || '').toLowerCase();
+                card.dataset.tags = (vaga.tags || []).join(' ').toLowerCase();
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <h3 class="font-bold text-base leading-tight text-slate-900 pr-2">${escapeHtml(titulo)}</h3>
+                        ${fonte ? `<span class="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-100 whitespace-nowrap flex-shrink-0">${escapeHtml(fonte)}</span>` : ''}
+                    </div>
+
+                    <div class="flex items-center gap-2 mb-3">
+                        <p class="text-sm text-slate-500 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            </svg>
+                            ${escapeHtml(localizacao)}
+                        </p>
+                        ${score > 0 ? `<span class="score-badge ${scoreClass(score)}">${scoreLabel(score)}</span>` : ''}
+                    </div>
+
+                    ${justificacao ? `
+                    <div class="mt-auto pt-4 border-t border-slate-100">
+                        <p class="text-[10px] font-extrabold uppercase mb-1.5 flex items-center gap-1" style="color: hsl(var(--primary));">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                            Análise IA
+                        </p>
+                        <p class="text-xs text-slate-600 leading-relaxed line-clamp-3 mb-4">${escapeHtml(justificacao)}</p>
+                    </div>
+                    ` : '<div class="mt-auto pt-4 border-t border-slate-100 mb-4"></div>'}
+
+                    <button
+                        onclick='openModal(${JSON.stringify(vaga).replace(/'/g, "&#39;")})'
+                        class="w-full mt-2 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-semibold transition-colors bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 cursor-pointer">
+                        Ver Detalhes
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            grid.classList.remove('hidden');
+            grid.classList.add('grid');
+        }
+
+        // ════════════════════════════════
+        // Filtrar cards
+        // ════════════════════════════════
+        function filtrarCards() {
+            const pesquisa = document.getElementById('input-pesquisa').value.toLowerCase();
+            const tipo = document.getElementById('filtro-tipo').value.toLowerCase();
+
+            const cards = document.querySelectorAll('#grid-vagas > div');
+            let visiveis = 0;
+
+            cards.forEach(card => {
+                const matchPesquisa = !pesquisa
+                    || card.dataset.titulo.includes(pesquisa)
+                    || card.dataset.tags.includes(pesquisa);
+                const matchTipo = !tipo || card.dataset.tipo.includes(tipo);
+
+                if (matchPesquisa && matchTipo) {
+                    card.style.display = '';
+                    visiveis++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('estado-vazio').classList.toggle('hidden', visiveis > 0);
+        }
+
+        // ════════════════════════════════
+        // Modal
+        // ════════════════════════════════
         function openModal(vaga) {
-            // Título
-            document.getElementById('modal-titulo').textContent = vaga.titulo || 'Detalhes da Vaga';
+            document.getElementById('modal-titulo').textContent = vaga.titulo || 'Detalhes';
 
             // Chips
             const chipsEl = document.getElementById('modal-chips');
             chipsEl.innerHTML = '';
-            if (vaga.empresa) chipsEl.innerHTML += `<span class="chip chip-primary"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>${vaga.empresa}</span>`;
-            if (vaga.localizacao) chipsEl.innerHTML += `<span class="chip chip-neutral"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>${vaga.localizacao}</span>`;
-            if (vaga.tipo) chipsEl.innerHTML += `<span class="chip chip-neutral">${vaga.tipo}</span>`;
-            if (vaga.salario) chipsEl.innerHTML += `<span class="chip chip-neutral">${vaga.salario}</span>`;
+            const localizacao = vaga.local || vaga.localizacao || '';
+            if (vaga.empresa) chipsEl.innerHTML += `<span class="chip chip-primary"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>${escapeHtml(vaga.empresa)}</span>`;
+            if (localizacao) chipsEl.innerHTML += `<span class="chip chip-neutral"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>${escapeHtml(localizacao)}</span>`;
+            if (vaga.tipo) chipsEl.innerHTML += `<span class="chip chip-neutral">${escapeHtml(vaga.tipo)}</span>`;
+            if (vaga.salario) chipsEl.innerHTML += `<span class="chip chip-neutral">${escapeHtml(vaga.salario)}</span>`;
 
-            // IA
+            // IA justificação
             document.getElementById('modal-ia').textContent = vaga.justificacao_ai || 'Recomendado com base no teu perfil.';
 
             // Descrição
@@ -505,7 +767,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            ${r}
+                            ${escapeHtml(r)}
                         </div>`;
                 });
                 reqBlock.style.display = 'block';
@@ -517,24 +779,22 @@
             const datasEl = document.getElementById('modal-datas');
             datasEl.innerHTML = '';
             if (vaga.data_publicacao) {
-                datasEl.innerHTML += `<span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Publicado: ${vaga.data_publicacao}</span>`;
+                datasEl.innerHTML += `<span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Publicado: ${escapeHtml(vaga.data_publicacao)}</span>`;
             }
             if (vaga.prazo) {
-                datasEl.innerHTML += `<span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>Prazo: ${vaga.prazo}</span>`;
+                datasEl.innerHTML += `<span class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>Prazo: ${escapeHtml(vaga.prazo)}</span>`;
             }
 
             // Tags
             const tagsEl = document.getElementById('modal-tags');
             tagsEl.innerHTML = '';
-            const tags = vaga.tags || [];
-            tags.forEach(t => {
-                tagsEl.innerHTML += `<span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">${t}</span>`;
+            (vaga.tags || []).forEach(t => {
+                tagsEl.innerHTML += `<span class="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">${escapeHtml(t)}</span>`;
             });
 
-            // Link candidatura
+            // Link
             document.getElementById('modal-link').href = vaga.url || '#';
 
-            // Abrir
             document.getElementById('modal-overlay').classList.add('open');
         }
 
@@ -547,6 +807,33 @@
         }
 
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+        // ════════════════════════════════
+        // Tabs
+        // ════════════════════════════════
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('btn-feed').className = "px-4 py-1.5 text-sm font-semibold rounded-md text-slate-500 opacity-60 hover:opacity-100 flex items-center gap-2 transition-all";
+            document.getElementById('btn-reports').className = "px-4 py-1.5 text-sm font-semibold rounded-md text-slate-500 opacity-60 hover:opacity-100 flex items-center gap-2 transition-all";
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.getElementById('btn-' + tabId).className = "px-4 py-1.5 text-sm font-semibold rounded-md bg-white shadow-sm text-slate-900 opacity-100 flex items-center gap-2 transition-all";
+        }
+
+        // ════════════════════════════════
+        // Utilitário: escape HTML
+        // ════════════════════════════════
+        function escapeHtml(str) {
+            if (typeof str !== 'string') return str || '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // ── Iniciar ao carregar a página ──
+        carregarRecomendacoes();
     </script>
 </body>
 
