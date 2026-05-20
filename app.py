@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, render_template, session, redirect, u
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+import json
 from datetime import datetime
 from functools import wraps
 from openai import AzureOpenAI  
@@ -22,7 +23,7 @@ db = client["OportuniaDB"]
 # Inicialização segura do cliente Azure OpenAI sem expor dados no código fonte
 AI_CLIENT = AzureOpenAI(
     api_key=os.environ.get("AZURE_OPENAI_KEY"),
-    api_version="2024-11-20",
+    api_version="2024-12-01-preview",
     azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT")
 )
 
@@ -187,6 +188,166 @@ def get_perfil():
     return jsonify(utilizador)
 
 
+@app.route("/api/recomendacoes", methods=["GET"])
+@login_required
+def get_recomendacoes():
+    """
+    Endpoint assíncrono chamado pela dashboard.
+    Pede ao GPT-4o que analise o perfil do utilizador e devolva
+    as vagas ordenadas por relevância com uma justificação personalizada
+    para cada uma, em JSON estruturado.
+    """
+    email = session["utilizador_email"]
+
+    # 1. Carregar perfil completo do utilizador
+    utilizador = db["Utilizadores"].find_one({"email": email}, {"_id": 0, "password_hash": 0})
+    if not utilizador:
+        return jsonify({"erro": "Utilizador não encontrado"}), 404
+
+    # 2. Buscar todas as vagas disponíveis
+    try:
+        vagas = list(db["Vagas"].find({}, {"_id": 0}))
+    except Exception as e:
+        return jsonify({"erro": f"Erro ao carregar vagas: {str(e)}"}), 500
+
+    if not vagas:
+        return jsonify({"vagas": [], "perfil_completo": False, "mensagem": "Sem vagas disponíveis."})
+
+    # 3. Verificar se o perfil tem dados suficientes para personalizar
+    competencias = utilizador.get("competencias_tecnicas", [])
+    cadeiras = utilizador.get("cadeiras_favoritas", [])
+    tipos = utilizador.get("tipos_oportunidade", [])
+    localizacoes = utilizador.get("localizacoes_preferidas", [])
+    perfil_completo = bool(competencias or cadeiras or tipos)
+
+    # 4. Limitar a 20 vagas enviadas à IA (evitar exceder limites de tokens)
+    #    Priorizar vagas cujos tipos coincidem com as preferências do utilizador
+    import random
+    vagas_para_ia = vagas[:20]  # por defeito: as 20 primeiras
+
+    if tipos:
+        tipos_lower = [t.lower() for t in tipos]
+        vagas_match = [v for v in vagas if str(v.get("tipo", "")).lower() in tipos_lower]
+        vagas_resto = [v for v in vagas if str(v.get("tipo", "")).lower() not in tipos_lower]
+        vagas_para_ia = (vagas_match + vagas_resto)[:20]
+
+    vagas_restantes = [v for v in vagas if v not in vagas_para_ia]
+
+    # 5. Construir resumo compacto das vagas para o prompt
+    vagas_resumo = []
+    for v in vagas_para_ia:
+        vagas_resumo.append({
+            "titulo": v.get("titulo", ""),
+            "empresa": v.get("empresa", ""),
+            "tipo": v.get("tipo", ""),
+            "local": v.get("local") or v.get("localizacao", ""),
+            "tags": v.get("tags", []),
+            "descricao": (v.get("descricao", "") or "")[:150]
+        })
+
+    prompt_sistema = (
+        "És um assistente de carreira integrado no portal Oportunia. "
+        "Analisa o perfil de um estudante e classifica oportunidades por relevância. "
+        'Responde SEMPRE com um objeto JSON com a chave "recomendacoes" contendo um array de objetos.'
+    )
+
+    prompt_utilizador = f"""Perfil do Estudante:
+- Nome: {utilizador.get('nome', 'Estudante')}
+- Curso: {utilizador.get('curso', 'Não especificado')} em {utilizador.get('instituicao', 'Não especificada')}
+- Competências Técnicas: {', '.join(competencias) if competencias else 'Não especificadas'}
+- Cadeiras Favoritas: {', '.join(cadeiras) if cadeiras else 'Não especificadas'}
+- Localizações Preferidas: {', '.join(localizacoes) if localizacoes else 'Qualquer'}
+- Tipos de Oportunidade: {', '.join(tipos) if tipos else 'Qualquer'}
+- Disponibilidade: {utilizador.get('disponibilidade', 'Não especificada')}
+
+Oportunidades a analisar ({len(vagas_resumo)}):
+{json.dumps(vagas_resumo, ensure_ascii=False)}
+
+Devolve um objeto JSON com a seguinte estrutura:
+{{
+  "recomendacoes": [
+    {{
+      "titulo": "título exato da oportunidade (copia exatamente)",
+      "score": <inteiro de 1 a 10>,
+      "justificacao_ai": "<2 frases em português explicando porque esta oportunidade se adequa a este estudante, mencionando as suas competências ou interesses específicos>"
+    }}
+  ]
+}}
+Ordena do score mais alto para o mais baixo. Inclui todas as {len(vagas_resumo)} oportunidades.
+"""
+
+    # 6. Chamar GPT-4o (ou usar cache se existir)
+    recomendacoes_ia = utilizador.get("cache_recomendacoes_ia", [])
+    erro_ia = None
+
+    if not recomendacoes_ia and perfil_completo:
+        try:
+            resposta = AI_CLIENT.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": prompt_sistema},
+                    {"role": "user", "content": prompt_utilizador}
+                ],
+                max_tokens=4000,
+                temperature=0.5,
+                response_format={"type": "json_object"}
+            )
+            conteudo = resposta.choices[0].message.content
+            parsed = json.loads(conteudo)
+            # Extrair a lista de recomendações do objeto devolvido
+            if isinstance(parsed, list):
+                recomendacoes_ia = parsed
+            elif isinstance(parsed, dict):
+                for v in parsed.values():
+                    if isinstance(v, list):
+                        recomendacoes_ia = v
+                        break
+            
+            # Guardar em cache para a próxima vez
+            if recomendacoes_ia:
+                db["Utilizadores"].update_one(
+                    {"email": email}, 
+                    {"$set": {"cache_recomendacoes_ia": recomendacoes_ia}}
+                )
+                
+        except Exception as ex:
+            erro_ia = str(ex)
+            recomendacoes_ia = []
+            print(f"[ERRO IA] {erro_ia}")
+
+    # 7. Fazer merge: justificações IA com dados completos das vagas
+    vagas_por_titulo = {v.get("titulo", ""): v for v in vagas}
+    vagas_finais = []
+    titulos_processados = set()
+
+    for rec in recomendacoes_ia:
+        if not isinstance(rec, dict):
+            continue
+        titulo = rec.get("titulo", "")
+        vaga_completa = vagas_por_titulo.get(titulo)
+        if vaga_completa:
+            vaga_enriquecida = dict(vaga_completa)
+            vaga_enriquecida["justificacao_ai"] = rec.get("justificacao_ai", "")
+            vaga_enriquecida["score_ia"] = rec.get("score", 5)
+            vagas_finais.append(vaga_enriquecida)
+            titulos_processados.add(titulo)
+
+    # Vagas analisadas pela IA mas não devolvidas (falha de match) + restantes
+    for vaga in vagas:
+        if vaga.get("titulo", "") not in titulos_processados:
+            vaga_copia = dict(vaga)
+            vaga_copia["justificacao_ai"] = ""
+            vaga_copia["score_ia"] = 0
+            vagas_finais.append(vaga_copia)
+
+    return jsonify({
+        "vagas": vagas_finais,
+        "perfil_completo": perfil_completo,
+        "erro_ia": erro_ia,
+        "nome_utilizador": utilizador.get("nome", "Utilizador")
+    })
+
+
 @app.route("/api/perfil", methods=["POST"])
 @login_required
 def save_perfil():
@@ -207,7 +368,14 @@ def save_perfil():
         return jsonify({"erro": "Nenhum campo válido para atualizar"}), 400
 
     # 1. Atualizar os dados do perfil no MongoDB Cosmos DB
-    db["Utilizadores"].update_one({"email": email}, {"$set": atualizacao})
+    # Limpar a cache da IA porque o perfil mudou
+    db["Utilizadores"].update_one(
+        {"email": email}, 
+        {
+            "$set": atualizacao,
+            "$unset": {"cache_recomendacoes_ia": ""}
+        }
+    )
 
     if "nome" in atualizacao:
         session["utilizador_nome"] = atualizacao["nome"]
