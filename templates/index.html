@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oportunia - Assistente de Carreira</title>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
 
     <style>
         :root {
             --background: 210 25% 97%;
             --foreground: 210 40% 12%;
-            --primary: 203 42% 35%; 
+            --primary: 203 42% 35%;
             --font-heading: 'Plus Jakarta Sans', sans-serif;
             --font-body: 'Inter', sans-serif;
             --gradient-primary: linear-gradient(135deg, hsl(203 42% 35%), hsl(205 45% 58%));
@@ -21,44 +24,99 @@
             --shadow-card-hover: 0 4px 16px hsl(203 42% 35% / 0.12), 0 8px 32px hsl(203 42% 35% / 0.06);
         }
 
-        body { font-family: var(--font-body); background-color: hsl(var(--background)); color: hsl(var(--foreground)); }
-        h1, h2, h3 { font-family: var(--font-heading); }
-        .gradient-primary { background: var(--gradient-primary); }
-        .card-elevated { background: white; box-shadow: var(--shadow-card); transition: all 0.3s ease; border: 1px solid hsl(210 20% 88%); }
-        .card-elevated:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-2px); }
+        body {
+            font-family: var(--font-body);
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-heading);
+        }
+
+        .gradient-primary {
+            background: var(--gradient-primary);
+        }
+
+        .card-elevated {
+            background: white;
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
+            border: 1px solid hsl(210 20% 88%);
+        }
+
+        .card-elevated:hover {
+            box-shadow: var(--shadow-card-hover);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
+
 <body class="min-h-screen">
 
-<nav class="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-lg border-slate-200">
+    <nav class="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-lg border-slate-200">
         <div class="max-w-5xl mx-auto px-4 flex items-center justify-between h-16">
-            
+
             <a href="/" class="flex items-center gap-2.5">
                 <img src="{{ url_for('static', filename='logo.png') }}" alt="Oportunia" class="w-8 h-8">
                 <span class="text-lg font-bold" style="font-family: var(--font-heading);">Oportunia</span>
             </a>
 
             <div class="flex items-center gap-1">
-                
-                <a href="/" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200" style="background: hsl(var(--primary) / 0.1); color: hsl(var(--primary));">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+
+                <a href="/"
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                    style="background: hsl(var(--primary) / 0.1); color: hsl(var(--primary));">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                        </path>
+                    </svg>
                     Início
                 </a>
 
-                <a href="/oportunidades" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium opacity-60 hover:opacity-100 transition-all duration-200">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <a href="/oportunidades"
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium opacity-60 hover:opacity-100 transition-all duration-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                        </path>
+                    </svg>
                     Oportunidades
                 </a>
 
-                <a href="/perfil" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium opacity-60 hover:opacity-100 transition-all duration-200">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <a href="/perfil"
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium opacity-60 hover:opacity-100 transition-all duration-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
                     Perfil
                 </a>
 
-                <a href="/login" class="ml-2 flex items-center justify-center gap-2 w-[104px] py-2 rounded-lg text-sm font-medium gradient-primary text-white shadow-sm hover:opacity-90 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                {% if logado %}
+                <a href="/logout"
+                    class="ml-2 flex items-center justify-center gap-2 w-[104px] py-2 rounded-lg text-sm font-medium text-red-600 bg-red-50 shadow-sm border border-red-100 hover:bg-red-100 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                        </path>
+                    </svg>
+                    Sair
+                </a>
+                {% else %}
+                <a href="/login"
+                    class="ml-2 flex items-center justify-center gap-2 w-[104px] py-2 rounded-lg text-sm font-medium gradient-primary text-white shadow-sm hover:opacity-90 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
+                        </path>
+                    </svg>
                     Entrar
                 </a>
+                {% endif %}
 
             </div>
         </div>
@@ -67,9 +125,10 @@
     <div class="flex flex-col min-h-screen">
         <section class="flex-1 flex items-center justify-center px-4 py-16 sm:py-24">
             <div class="max-w-2xl mx-auto text-center">
-                
+
                 <h1 class="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight mt-10">
-                    As melhores oportunidades para <span style="color: hsl(var(--primary))">estudantes de informática</span>
+                    As melhores oportunidades para <span style="color: hsl(var(--primary))">estudantes de
+                        informática</span>
                 </h1>
 
                 <p class="text-lg opacity-70 mb-8 max-w-lg mx-auto">
@@ -77,9 +136,17 @@
                 </p>
 
                 <div class="flex justify-center">
-                    <a href="/login" class="gradient-primary text-white font-semibold h-12 px-8 rounded-xl flex items-center shadow-md hover:opacity-90 transition-all">
+                    {% if logado %}
+                    <a href="/oportunidades"
+                        class="gradient-primary text-white font-semibold h-12 px-8 rounded-xl flex items-center shadow-md hover:opacity-90 transition-all">
+                        Visualizar oportunidades
+                    </a>
+                    {% else %}
+                    <a href="/login"
+                        class="gradient-primary text-white font-semibold h-12 px-8 rounded-xl flex items-center shadow-md hover:opacity-90 transition-all">
                         Criar o meu perfil
                     </a>
+                    {% endif %}
                 </div>
             </div>
         </section>
@@ -103,4 +170,5 @@
     </div>
 
 </body>
+
 </html>
