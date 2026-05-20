@@ -48,7 +48,7 @@
 
 <body class="min-h-screen flex items-center justify-center px-4">
 
-    <div class="w-full max-w-sm animate-fade-in-up">
+    <div class="w-full max-w-sm">
 
         <div class="text-center mb-8 flex flex-col items-center gap-3">
             <a href="/" class="inline-flex flex-col items-center gap-3 hover:opacity-90 transition-opacity">
@@ -60,7 +60,18 @@
 
         <div class="card-elevated rounded-xl p-6">
 
-            <form action="/oportunidades" method="GET" class="space-y-4">
+            {% if erro %}
+            <div
+                class="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {{ erro }}
+            </div>
+            {% endif %}
+
+            <form action="/login" method="POST" class="space-y-4">
 
                 <div class="space-y-2">
                     <label for="email" class="text-xs font-semibold">Email</label>
@@ -71,7 +82,6 @@
                                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
                             </path>
                         </svg>
-
                         <input id="email" type="email" name="email" placeholder="bernardo@ipcb.pt" required
                             class="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] focus:bg-white transition-colors text-sm">
                     </div>
@@ -80,7 +90,7 @@
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <label for="password" class="text-xs font-semibold">Password</label>
-                        <button type="button" class="text-xs hover:underline"
+                        <button type="button" onclick="openForgotModal()" class="text-xs hover:underline"
                             style="color: hsl(var(--primary));">Esqueci-me da password</button>
                     </div>
                     <div class="relative">
@@ -90,7 +100,6 @@
                                 d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
                             </path>
                         </svg>
-
                         <input id="password" type="password" name="password" placeholder="••••••••" required
                             class="w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] focus:bg-white transition-colors text-sm">
                     </div>
@@ -113,6 +122,104 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Recuperar Password -->
+    <div id="forgot-modal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300"
+            id="forgot-modal-content">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800" style="font-family: var(--font-heading);">Recuperar Password</h3>
+                <button type="button" onclick="closeForgotModal()"
+                    class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-5 space-y-4">
+                <p class="text-sm text-slate-500">Introduz o teu email associado à conta. Vamos enviar-te um link para
+                    definires uma nova password.</p>
+                <div class="space-y-2">
+                    <label for="forgot-email" class="text-xs font-semibold">Email</label>
+                    <input id="forgot-email" type="email" placeholder="O teu email"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] focus:bg-white transition-colors text-sm">
+                </div>
+                <div id="forgot-feedback" class="hidden text-sm px-3 py-2 rounded-lg"></div>
+                <button type="button" id="btn-forgot" onclick="recuperarPassword()"
+                    class="w-full gradient-primary text-white font-semibold h-10 rounded-lg shadow-sm hover:opacity-90 transition-all text-sm">
+                    Enviar Instruções
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openForgotModal() {
+            const modal = document.getElementById('forgot-modal');
+            const content = document.getElementById('forgot-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                document.getElementById('forgot-email').focus();
+            }, 10);
+        }
+
+        function closeForgotModal() {
+            const modal = document.getElementById('forgot-modal');
+            const content = document.getElementById('forgot-modal-content');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('forgot-feedback').classList.add('hidden');
+                document.getElementById('forgot-email').value = '';
+            }, 300);
+        }
+
+        async function recuperarPassword() {
+            const email = document.getElementById('forgot-email').value.trim();
+            const feedback = document.getElementById('forgot-feedback');
+            const btn = document.getElementById('btn-forgot');
+
+            if (!email) {
+                feedback.textContent = 'Por favor, introduz o teu email.';
+                feedback.className = 'text-sm px-3 py-2 rounded-lg bg-red-50 text-red-600 border border-red-100 block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'A enviar...';
+            btn.classList.add('opacity-70');
+
+            try {
+                const resp = await fetch('/api/recuperar-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const res = await resp.json();
+
+                if (resp.ok) {
+                    feedback.textContent = res.mensagem;
+                    feedback.className = 'text-sm px-3 py-2 rounded-lg bg-green-50 text-green-700 border border-green-100 block';
+                    setTimeout(() => closeForgotModal(), 4000);
+                } else {
+                    feedback.textContent = res.erro || 'Ocorreu um erro.';
+                    feedback.className = 'text-sm px-3 py-2 rounded-lg bg-red-50 text-red-600 border border-red-100 block';
+                }
+            } catch (err) {
+                feedback.textContent = 'Erro de ligação. Tenta novamente.';
+                feedback.className = 'text-sm px-3 py-2 rounded-lg bg-red-50 text-red-600 border border-red-100 block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Enviar Instruções';
+                btn.classList.remove('opacity-70');
+            }
+        }
+    </script>
 
 </body>
 

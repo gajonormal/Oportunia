@@ -5,12 +5,34 @@
     "empresa": "string",
     "local": "string",
     "fonte": "string",
-    "data_publicacao": "string"
+    "data_publicacao": "string",
+    "descricao": "string",
+    "requisitos_tecnicos": ["string"],
+    "salario": "string",
+    "tipo": "string"
   },
   "Colecao_Utilizadores": {
-    "nome": "string",
     "email": "string",
+    "password_hash": "string",
+    "nome": "string",
+    "headline": "string",
+    "instituicao": "string",
+    "curso": "string",
+    "links": {
+      "github": "string",
+      "linkedin": "string",
+      "website": "string"
+    },
     "competencias_tecnicas": ["string"],
-    "localizacao_preferida": "string"
+    "cadeiras_favoritas": ["string"],
+    "localizacoes_preferidas": ["string"],
+    "tipos_oportunidade": ["string"],
+    "disponibilidade": "string",
+    "notificacoes": {
+      "email_alertas": "boolean",
+      "relatorio_semanal": "boolean"
+    },
+    "data_registo": "string",
+    "data_atualizacao": "string"
   }
 }
