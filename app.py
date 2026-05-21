@@ -17,10 +17,10 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configurações dinâmicas lidas de forma segura a partir do ambiente local (.env)
-app.secret_key = os.environ.get("SECRET_KEY")
+app.secret_key = os.environ.get("SECRET_KEY", "chave-secreta-de-desenvolvimento")
 serializer = URLSafeTimedSerializer(app.secret_key)
 
-MONGO_URI = os.environ.get("LIGACAO_COSMOS")
+MONGO_URI = os.environ.get("LIGACAO_COSMOS", "mongodb://localhost:27017/")
 client = MongoClient(MONGO_URI, tlsAllowInvalidCertificates=True)
 db = client["OportuniaDB"]
 
