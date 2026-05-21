@@ -63,21 +63,26 @@ def login():
 
 @app.route("/login", methods=["POST"])
 def login_post():
-    email = request.form.get("email", "").strip().lower()
-    password = request.form.get("password", "")
+    try:
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
 
-    if not email or not password:
-        return render_template("login.html", erro="Preenche todos os campos.")
+        if not email or not password:
+            return render_template("login.html", erro="Preenche todos os campos.")
 
-    utilizador = db["Utilizadores"].find_one({"email": email})
+        utilizador = db["Utilizadores"].find_one({"email": email})
 
-    if not utilizador or not check_password_hash(utilizador["password_hash"], password):
-        return render_template("login.html", erro="Email ou password incorretos.")
+        if not utilizador or not check_password_hash(utilizador["password_hash"], password):
+            return render_template("login.html", erro="Email ou password incorretos.")
 
-    session["utilizador_email"] = email
-    session["utilizador_nome"] = utilizador.get("nome", "Utilizador")
+        session["utilizador_email"] = email
+        session["utilizador_nome"] = utilizador.get("nome", "Utilizador")
 
-    return redirect(url_for("oportunidades"))
+        return redirect(url_for("oportunidades"))
+    except Exception as e:
+        import traceback
+        erro_detalhado = traceback.format_exc()
+        return f"<pre>Erro 500 Detalhado no Login:\n{erro_detalhado}</pre>", 500
 
 
 @app.route("/logout")
