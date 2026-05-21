@@ -47,12 +47,14 @@ jobs:
       with:
         python-version: '3.11'
 
+    - name: Instalar Azure Functions Core Tools
+      run: npm install -g azure-functions-core-tools@4 --unsafe-perm true
+
     - name: Preparar pacote da Function
       run: |
         mkdir -p package_func
         cp function_app.py host.json requirements_function.txt package_func/
         mv package_func/requirements_function.txt package_func/requirements.txt
-        cd package_func && zip -r ../function.zip . && cd ..
 
     - name: Login na Azure
       uses: azure/login@v2
@@ -60,10 +62,7 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Deploy da Function App
-      run: |
-        az functionapp deploy \
-          --resource-group rg-oportunia-oficial \
-          --name oportunia-scraper \
-          --src-path function.zip \
-          --type zip \
-          --subscription 70b408d2-3d8a-429d-8790-023389277f2c
+      run: func azure functionapp publish oportunia-scraper --python
+      working-directory: ./package_func
+      env:
+        AZURE_SUBSCRIPTION_ID: 70b408d2-3d8a-429d-8790-023389277f2c
