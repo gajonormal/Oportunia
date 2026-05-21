@@ -7,6 +7,14 @@ from pymongo import MongoClient
 
 app = func.FunctionApp()
 
+def limpar_html(texto):
+    if not texto: return ""
+    texto = re.sub(r'<br\s*/?>', '\n', texto, flags=re.IGNORECASE)
+    texto = re.sub(r'</p>', '\n\n', texto, flags=re.IGNORECASE)
+    texto = re.sub(r'</li>', '\n', texto, flags=re.IGNORECASE)
+    texto = re.sub(r'<[^>]+>', '', texto)
+    return texto.strip()
+
 # ==========================================
 # TRABALHADORES (Funções de Extração)
 # ==========================================
@@ -31,8 +39,9 @@ def extrair_itjobs(chave):
                     if 'locations' in item and len(item['locations']) > 0:
                         localizacao = item['locations'][0]['name']
 
+                    # Limpar tags HTML da descrição para o frontend preservando linhas
                     descricao_raw = item.get('body', '')
-                    descricao_limpa = re.sub(r'<[^>]+>', '', descricao_raw).strip()
+                    descricao_limpa = limpar_html(descricao_raw)
                     
                     tipo_vaga = "Emprego"
                     if 'types' in item and len(item['types']) > 0:
@@ -78,7 +87,7 @@ def extrair_jooble(chave):
             vagas = response.json().get('jobs', [])
             for item in vagas:
                 descricao_raw = item.get('snippet', '')
-                descricao_limpa = re.sub(r'<[^>]+>', '', descricao_raw).strip()
+                descricao_limpa = limpar_html(descricao_raw)
                 
                 vaga = {
                     "id_vaga": f"jooble_{item.get('id', '')}",
@@ -110,7 +119,7 @@ def extrair_remotive():
             vagas = response.json().get('jobs', [])
             for item in vagas:
                 descricao_raw = item.get('description', '')
-                descricao_limpa = re.sub(r'<[^>]+>', '', descricao_raw).strip()
+                descricao_limpa = limpar_html(descricao_raw)
                 
                 vaga = {
                     "id_vaga": f"remotive_{item.get('id', '')}",

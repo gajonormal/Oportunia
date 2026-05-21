@@ -237,12 +237,13 @@ def get_recomendacoes():
     vagas_resumo = []
     for v in vagas_para_ia:
         vagas_resumo.append({
+            "id_vaga": v.get("id_vaga"),
             "titulo": v.get("titulo", ""),
             "empresa": v.get("empresa", ""),
             "tipo": v.get("tipo", ""),
             "local": v.get("local") or v.get("localizacao", ""),
             "tags": v.get("tags", []),
-            "descricao": (v.get("descricao", "") or "")[:150]
+            "descricao": (v.get("descricao", "") or "")[:1000]
         })
 
     prompt_sistema = (
@@ -263,17 +264,19 @@ def get_recomendacoes():
 Oportunidades a analisar ({len(vagas_resumo)}):
 {json.dumps(vagas_resumo, ensure_ascii=False)}
 
-Devolve um objeto JSON com a seguinte estrutura:
+Devolve um objeto JSON com a seguinte estrutura exata:
 {{
   "recomendacoes": [
     {{
       "titulo": "título exato da oportunidade (copia exatamente)",
       "score": <inteiro de 1 a 10>,
-      "justificacao_ai": "<2 frases em português explicando porque esta oportunidade se adequa a este estudante, mencionando as suas competências ou interesses específicos>"
+      "justificacao_ai": "<2 frases em português explicando a adequação>",
+      "tags_extraidas": ["React", "TypeScript", "Python"],
+      "requisitos_resumo": ["3 anos de experiência", "Inglês B2"]
     }}
   ]
 }}
-Ordena do score mais alto para o mais baixo. Inclui todas as {len(vagas_resumo)} oportunidades.
+Ordena do score mais alto para o mais baixo. Inclui todas as {len(vagas_resumo)} oportunidades. "tags_extraidas" devem ser no máximo 5 tecnologias essenciais da vaga. "requisitos_resumo" devem ser no máximo 4 pontos com as principais exigências listadas na descrição da vaga.
 """
 
     # 6. Chamar GPT-4o (ou usar cache se existir)
@@ -323,14 +326,15 @@ Ordena do score mais alto para o mais baixo. Inclui todas as {len(vagas_resumo)}
     for rec in recomendacoes_ia:
         if not isinstance(rec, dict):
             continue
-        titulo = rec.get("titulo", "")
-        vaga_completa = vagas_por_titulo.get(titulo)
-        if vaga_completa:
-            vaga_enriquecida = dict(vaga_completa)
-            vaga_enriquecida["justificacao_ai"] = rec.get("justificacao_ai", "")
-            vaga_enriquecida["score_ia"] = rec.get("score", 5)
-            vagas_finais.append(vaga_enriquecida)
-            titulos_processados.add(titulo)
+        titulo_rec = rec.get("titulo", "")
+        if titulo_rec in vagas_por_titulo:
+            vaga_completa = dict(vagas_por_titulo[titulo_rec])
+            vaga_completa["justificacao_ai"] = rec.get("justificacao_ai", "")
+            vaga_completa["score_ia"] = rec.get("score", 0)
+            vaga_completa["tags"] = rec.get("tags_extraidas", [])
+            vaga_completa["requisitos"] = rec.get("requisitos_resumo", [])
+            vagas_finais.append(vaga_completa)
+            titulos_processados.add(titulo_rec)
 
     # Vagas analisadas pela IA mas não devolvidas (falha de match) + restantes
     for vaga in vagas:

@@ -512,7 +512,10 @@
                 <!-- Descrição -->
                 <div class="mb-5" id="modal-descricao-block">
                     <h3 class="font-bold text-sm text-slate-900 mb-2">Descrição</h3>
-                    <p id="modal-descricao" class="text-sm text-slate-600 leading-relaxed"></p>
+                    <div class="relative">
+                        <p id="modal-descricao" class="text-sm text-slate-600 leading-relaxed whitespace-pre-line line-clamp-5"></p>
+                        <button id="btn-ver-mais" onclick="toggleDescricao()" class="text-xs font-semibold mt-1 hidden" style="color: hsl(var(--primary));">Ver mais</button>
+                    </div>
                 </div>
 
                 <!-- Requisitos -->
@@ -748,9 +751,23 @@
 
             // Descrição
             const descBlock = document.getElementById('modal-descricao-block');
+            const descEl = document.getElementById('modal-descricao');
+            const btnVerMais = document.getElementById('btn-ver-mais');
+            
+            descEl.classList.add('line-clamp-5');
+            btnVerMais.textContent = 'Ver mais';
+            btnVerMais.classList.add('hidden');
+
             if (vaga.descricao) {
-                document.getElementById('modal-descricao').textContent = vaga.descricao;
+                descEl.textContent = vaga.descricao;
                 descBlock.style.display = 'block';
+                
+                // Mostrar botão 'Ver mais' apenas se o texto for maior que o espaço de 5 linhas
+                setTimeout(() => {
+                    if (descEl.scrollHeight > descEl.clientHeight) {
+                        btnVerMais.classList.remove('hidden');
+                    }
+                }, 10);
             } else {
                 descBlock.style.display = 'none';
             }
@@ -800,6 +817,18 @@
 
         function closeModal() {
             document.getElementById('modal-overlay').classList.remove('open');
+        }
+
+        function toggleDescricao() {
+            const desc = document.getElementById('modal-descricao');
+            const btn = document.getElementById('btn-ver-mais');
+            if (desc.classList.contains('line-clamp-5')) {
+                desc.classList.remove('line-clamp-5');
+                btn.textContent = 'Ver menos';
+            } else {
+                desc.classList.add('line-clamp-5');
+                btn.textContent = 'Ver mais';
+            }
         }
 
         function handleOverlayClick(e) {
