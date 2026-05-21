@@ -1,4 +1,4 @@
-name: Deploy API to Azure
+name: Deploy Oportunia to Azure
 
 on:
   push:
@@ -6,13 +6,17 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  # ─────────────────────────────────────────────
+  # JOB 1: Web App (Flask via Docker)
+  # ─────────────────────────────────────────────
+  deploy-webapp:
+    name: Deploy Web App (Docker)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Login no Docker Hub
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_USER }}
         password: ${{ secrets.DOCKER_PASS }}
@@ -23,8 +27,43 @@ jobs:
         docker push ${{ secrets.DOCKER_USER }}/oportunia-api:latest
 
     - name: Deploy no Azure Web App
-      uses: azure/webapps-deploy@v2
+      uses: azure/webapps-deploy@v3
       with:
-        app-name: 'app-oportunia-67g5yzourkqaa' 
+        app-name: 'app-oportunia-67g5yzourkqaa'
         publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
         images: '${{ secrets.DOCKER_USER }}/oportunia-api:latest'
+
+  # ─────────────────────────────────────────────
+  # JOB 2: Azure Function (Scraper de Vagas)
+  # ─────────────────────────────────────────────
+  deploy-function:
+    name: Deploy Azure Function (Scraper)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Preparar pacote da Function
+      run: |
+        mkdir -p package_func
+        cp function_app.py host.json requirements_function.txt package_func/
+        mv package_func/requirements_function.txt package_func/requirements.txt
+        cd package_func && zip -r ../function.zip . && cd ..
+
+    - name: Login na Azure
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy da Function App
+      run: |
+        az functionapp deploy \
+          --resource-group rg-oportunia-oficial \
+          --name oportunia-scraper \
+          --src-path function.zip \
+          --type zip \
+          --subscription 70b408d2-3d8a-429d-8790-023389277f2c
