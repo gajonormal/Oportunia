@@ -4,6 +4,9 @@ import logging
 import requests
 import re
 from pymongo import MongoClient
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 app = func.FunctionApp()
 
@@ -141,6 +144,82 @@ def extrair_remotive():
 
 
 # ==========================================
+# NOTIFICAÇÕES (Alertas por E-mail)
+# ==========================================
+def enviar_notificacoes(db, total_novas_vagas):
+    logging.info("A iniciar o processo de notificações por e-mail...")
+    
+    mail_server = os.environ.get("MAIL_SERVER")
+    mail_port = os.environ.get("MAIL_PORT")
+    mail_username = os.environ.get("MAIL_USERNAME")
+    mail_password = os.environ.get("MAIL_PASSWORD")
+
+    if not all([mail_server, mail_port, mail_username, mail_password]):
+        logging.error("Credenciais de e-mail não configuradas. As notificações não serão enviadas.")
+        return
+
+    # Buscar utilizadores que têm as notificações ativadas
+    utilizadores = list(db["Utilizadores"].find({"notificacoes.email_alertas": True}))
+    
+    if not utilizadores:
+        logging.info("Nenhum utilizador com alertas de e-mail ativados.")
+        return
+        
+    logging.info(f"Foram encontrados {len(utilizadores)} utilizadores para notificar.")
+
+    try:
+        servidor = smtplib.SMTP(mail_server, int(mail_port))
+        servidor.starttls()
+        servidor.login(mail_username, mail_password)
+
+        enviados = 0
+        for u in utilizadores:
+            email_dest = u.get("email")
+            nome = u.get("nome", "Utilizador").split(" ")[0]
+            
+            if not email_dest:
+                continue
+
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = f"Novas oportunidades encontradas na Oportunia! 🎉"
+            msg["From"] = f"Equipa Oportunia <{mail_username}>"
+            msg["To"] = email_dest
+
+            html = f"""
+            <html>
+              <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #2b6cb0;">Olá {nome},</h2>
+                <p>O nosso sistema automático acabou de recolher <strong>{total_novas_vagas} novas ofertas</strong> no mercado!</p>
+                <p>Não percas tempo e vai verificar as novas vagas de emprego, estágios e bolsas que podem ser perfeitas para ti.</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="https://app-oportunia-67g5yzourkqaa.azurewebsites.net/oportunidades" 
+                     style="background-color: #2b6cb0; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                    Ver Novas Oportunidades
+                  </a>
+                </div>
+                <p style="font-size: 12px; color: #666; margin-top: 40px;">
+                  Recebeste este e-mail porque tens os alertas diários ativados no teu perfil da Oportunia.<br>
+                  Podes gerir as tuas preferências na secção do teu <a href="https://app-oportunia-67g5yzourkqaa.azurewebsites.net/perfil">perfil</a>.
+                </p>
+              </body>
+            </html>
+            """
+            
+            msg.attach(MIMEText(html, "html"))
+            
+            try:
+                servidor.send_message(msg)
+                enviados += 1
+            except Exception as ex:
+                logging.warning(f"Falha ao enviar para {email_dest}: {ex}")
+
+        servidor.quit()
+        logging.info(f"Notificações concluídas: {enviados} e-mails enviados.")
+
+    except Exception as e:
+        logging.error(f"Erro ao conectar ao servidor SMTP: {e}")
+
+# ==========================================
 # ORQUESTRADOR (A Função Principal)
 # ==========================================
 
@@ -190,6 +269,10 @@ def ScraperOportunia(myTimer: func.TimerRequest) -> None:
             total_guardado += 1
 
         logging.info(f"RECOLHA CONCLUÍDA! Total de {total_guardado} vagas guardadas.")
+
+        # 5. Enviar Notificações por E-mail aos utilizadores inscritos
+        if total_guardado > 0:
+            enviar_notificacoes(db, total_guardado)
 
     except Exception as e:
         logging.error(f"Ocorreu um erro ao guardar na Base de Dados: {e}")
