@@ -146,7 +146,8 @@ def registo_post():
 def oportunidades():
     try:
         vagas = list(db["Vagas"].find({}, {"_id": 0}))
-    except:
+    except Exception as e:
+        print(f"Erro ao obter vagas: {e}")
         vagas = []
 
     nome = session.get("utilizador_nome", "Utilizador")
@@ -222,7 +223,6 @@ def get_recomendacoes():
 
     # 4. Limitar a 20 vagas enviadas à IA (evitar exceder limites de tokens)
     #    Priorizar vagas cujos tipos coincidem com as preferências do utilizador
-    import random
     vagas_para_ia = vagas[:20]  # por defeito: as 20 primeiras
 
     if tipos:
