@@ -7,6 +7,9 @@ from datetime import datetime
 from functools import wraps
 from openai import AzureOpenAI  
 from dotenv import load_dotenv  #Carregar biblioteca para ler o ficheiro .env
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
+import smtplib
+from email.message import EmailMessage
 
 # Carrega as variáveis de ambiente a partir do ficheiro .env local
 load_dotenv()
@@ -15,6 +18,7 @@ app = Flask(__name__)
 
 # Configurações dinâmicas lidas de forma segura a partir do ambiente local (.env)
 app.secret_key = os.environ.get("SECRET_KEY")
+serializer = URLSafeTimedSerializer(app.secret_key)
 
 MONGO_URI = os.environ.get("LIGACAO_COSMOS")
 client = MongoClient(MONGO_URI, tlsAllowInvalidCertificates=True)
@@ -469,8 +473,92 @@ def recuperar_password():
     
     if not email:
         return jsonify({"erro": "Email inválido."}), 400
+        
+    utilizador = db["Utilizadores"].find_one({"email": email})
+    if utilizador:
+        # Gera o token seguro
+        token = serializer.dumps(email, salt='recuperacao-password')
+        link_recuperacao = url_for('reset_password_page', token=token, _external=True)
+        
+        # Envia o email
+        try:
+            enviar_email_recuperacao(email, link_recuperacao)
+        except Exception as e:
+            print(f"Erro ao enviar email de recuperação: {e}")
+            return jsonify({"erro": "Ocorreu um erro ao enviar o email de recuperação."}), 500
     
     return jsonify({"sucesso": True, "mensagem": "Se o email existir, enviámos as instruções para recuperares a password."})
+
+def enviar_email_recuperacao(email_destino, link):
+    remetente = os.environ.get("MAIL_USERNAME")
+    password = os.environ.get("MAIL_PASSWORD")
+    servidor = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
+    porta = int(os.environ.get("MAIL_PORT", 587))
+    
+    if not remetente or not password:
+        raise Exception("Credenciais de email não configuradas no .env")
+
+    msg = EmailMessage()
+    msg['Subject'] = 'Oportunia - Recuperação de Password'
+    msg['From'] = remetente
+    msg['To'] = email_destino
+    msg.set_content(f"""Olá,
+    
+Recebemos um pedido para redefinir a tua password no Oportunia.
+Clica no link abaixo para criar uma nova password (o link expira em 1 hora):
+
+{link}
+
+Se não pediste para redefinir a password, podes ignorar este email.
+    
+A Equipa Oportunia""")
+
+    with smtplib.SMTP(servidor, porta) as s:
+        s.starttls()
+        s.login(remetente, password)
+        s.send_message(msg)
+
+@app.route("/reset-password/<token>", methods=["GET"])
+def reset_password_page(token):
+    try:
+        serializer.loads(token, salt='recuperacao-password', max_age=3600) # Expira em 1 hora
+    except SignatureExpired:
+        return render_template("reset_password.html", erro="O link de recuperação expirou. Por favor, pede um novo.")
+    except BadTimeSignature:
+        return render_template("reset_password.html", erro="Link de recuperação inválido.")
+    
+    return render_template("reset_password.html", token=token)
+
+@app.route("/reset-password/<token>", methods=["POST"])
+def reset_password_post(token):
+    try:
+        email = serializer.loads(token, salt='recuperacao-password', max_age=3600)
+    except SignatureExpired:
+        return render_template("reset_password.html", erro="O link de recuperação expirou. Por favor, pede um novo.")
+    except BadTimeSignature:
+        return render_template("reset_password.html", erro="Link de recuperação inválido.")
+        
+    password = request.form.get("password", "")
+    confirm_password = request.form.get("confirm_password", "")
+    
+    if len(password) < 8:
+        return render_template("reset_password.html", token=token, erro="A password deve ter pelo menos 8 caracteres.")
+        
+    if password != confirm_password:
+        return render_template("reset_password.html", token=token, erro="As passwords não coincidem.")
+        
+    # Atualiza a base de dados
+    db["Utilizadores"].update_one(
+        {"email": email}, 
+        {
+            "$set": {
+                "password_hash": generate_password_hash(password),
+                "data_atualizacao": datetime.utcnow().isoformat()
+            }
+        }
+    )
+    
+    return render_template("reset_password.html", sucesso="Password redefinida com sucesso!")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True, use_reloader=False)
