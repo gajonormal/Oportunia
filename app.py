@@ -1,3 +1,4 @@
+from fpdf import FPDF
 from flask import Flask, jsonify, request, render_template, session, redirect, url_for
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -709,5 +710,92 @@ def reset_password_post(token):
     
     return render_template("reset_password.html", sucesso="Password redefinida com sucesso!")
 
+
+@app.route("/api/gerar-relatorio", methods=["POST"])
+@login_required
+def gerar_relatorio():
+    try:
+        email = session["utilizador_email"]
+        utilizador = db["Utilizadores"].find_one({"email": email})
+        
+        if not utilizador:
+            return jsonify({"erro": "Utilizador não encontrado na base de dados."}), 404
+            
+        # 1. Obter as recomendações em cache ou da BD
+        vagas = utilizador.get("cache_recomendacoes_ia", [])
+        if not vagas:
+            return jsonify({"erro": "Não tens recomendações recentes. Vai ao Feed primeiro para a IA analisar as vagas!"}), 400
+            
+        # 2. Criar o PDF
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", 'B', 16)
+        pdf.cell(0, 10, "Oportunia - Relatorio de Oportunidades", ln=True, align='C')
+        pdf.set_font("Arial", '', 12)
+        pdf.cell(0, 10, f"Estudante: {utilizador.get('nome', 'Utilizador')}", ln=True, align='C')
+        pdf.ln(10)
+        
+        # Adicionar as 5 melhores vagas ao PDF
+        for vaga in vagas[:5]:
+            pdf.set_font("Arial", 'B', 12)
+            titulo = vaga.get('titulo', 'Vaga').encode('latin-1', 'replace').decode('latin-1')
+            pdf.cell(0, 8, f"- {titulo}", ln=True)
+            
+            pdf.set_font("Arial", '', 10)
+            justificacao = vaga.get('justificacao_ai', '').encode('latin-1', 'replace').decode('latin-1')
+            pdf.multi_cell(0, 6, f"Porque: {justificacao}")
+            pdf.ln(5)
+            
+        # CORREÇÃO AQUI: O fpdf2 já devolve bytes diretamente, não precisa de .encode()
+        pdf_bytes = pdf.output() 
+        
+        # 3. Guardar no Blob Storage
+        conn_str = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+        if not conn_str:
+            return jsonify({"erro": "Chave AZURE_STORAGE_CONNECTION_STRING nao configurada no .env"}), 500
+            
+        blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+        container_client = blob_service_client.get_container_client("relatorios")
+        
+        if not container_client.exists():
+            container_client.create_container()
+            
+        timestamp = datetime.utcnow().strftime("%Y%m%d%H%M")
+        blob_name = f"relatorio_{email.split('@')[0]}_{timestamp}.pdf"
+        
+        blob_client = blob_service_client.get_blob_client(container="relatorios", blob=blob_name)
+        blob_client.upload_blob(bytes(pdf_bytes), overwrite=True)
+        
+        return jsonify({"sucesso": True, "mensagem": "Relatório gerado com sucesso!", "ficheiro": blob_name})
+        
+    except Exception as e:
+        print(f"[ERRO CRITICAL NO PDF] {e}")
+        return jsonify({"erro": f"Erro interno no servidor: {str(e)}"}), 500
+
+@app.route("/api/relatorios/download/<blob_name>", methods=["GET"])
+@login_required
+def download_relatorio(blob_name):
+    conn_str = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+    if not conn_str:
+        return jsonify({"erro": "Configuração de Cloud Storage em falta no servidor."}), 500
+        
+    try:
+        blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+        # Atenção para usar o nome do contentor certo: "relatorios"
+        blob_client = blob_service_client.get_blob_client(container="relatorios", blob=blob_name)
+        
+        download_stream = blob_client.download_blob()
+        file_content = download_stream.readall()
+        
+        return app.response_class(
+            file_content,
+            headers={"Content-Disposition": f"attachment; filename={blob_name}"},
+            mimetype="application/pdf"
+        )
+    except Exception as e:
+        print(f"Erro ao descarregar Relatório PDF: {e}")
+        return jsonify({"erro": "Falha ao descarregar o ficheiro da Cloud."}), 500
+
+        
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True, use_reloader=False)
