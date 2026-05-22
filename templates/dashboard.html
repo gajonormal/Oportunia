@@ -851,12 +851,17 @@
         // ════════════════════════════════
         // Tabs
         // ════════════════════════════════
-        function switchTab(tabId) {
+       function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('btn-feed').className = "px-4 py-1.5 text-sm font-semibold rounded-md text-slate-500 opacity-60 hover:opacity-100 flex items-center gap-2 transition-all";
             document.getElementById('btn-reports').className = "px-4 py-1.5 text-sm font-semibold rounded-md text-slate-500 opacity-60 hover:opacity-100 flex items-center gap-2 transition-all";
             document.getElementById('tab-' + tabId).classList.add('active');
             document.getElementById('btn-' + tabId).className = "px-4 py-1.5 text-sm font-semibold rounded-md bg-white shadow-sm text-slate-900 opacity-100 flex items-center gap-2 transition-all";
+            
+            // NOVO: Se o utilizador clicar no separador de relatórios, carrega o histórico da BD
+            if (tabId === 'reports') {
+                carregarHistoricoRelatorios();
+            }
         }
 
         // ════════════════════════════════
@@ -931,6 +936,56 @@
                 btn.innerHTML = textoOriginal;
                 btn.disabled = false;
                 btn.style.opacity = '1';
+            }
+        }
+
+
+        // ════════════════════════════════════════
+        // Carregar Histórico de Relatórios da BD
+        // ════════════════════════════════════════
+        async function carregarHistoricoRelatorios() {
+            const lista = document.getElementById('lista-relatorios');
+            
+            try {
+                const res = await fetch('/api/relatorios');
+                if (!res.ok) throw new Error('Não foi possível obter o histórico.');
+                
+                const relatorios = await res.json();
+                
+                // Se não houver relatórios no Cosmos DB, mostra o estado vazio
+                if (relatorios.length === 0) {
+                    lista.innerHTML = `
+                        <div id="estado-vazio-relatorios" class="text-center py-8 text-slate-500 border border-dashed border-slate-300 rounded-xl bg-white">
+                            <p class="text-sm">Ainda não geraste nenhum relatório.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Limpar a lista e renderizar cada relatório guardado
+                lista.innerHTML = '';
+                relatorios.forEach(rel => {
+                    const card = document.createElement('div');
+                    card.className = 'card-elevated rounded-xl p-4 flex items-center justify-between border border-slate-200 bg-white mb-3';
+                    card.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded bg-red-50 text-red-500 flex items-center justify-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-sm text-slate-900">Relatório de Oportunidades (IA)</p>
+                                <p class="text-xs text-slate-500">Gerado em: ${escapeHtml(rel.data)} • Azure Blob Storage</p>
+                            </div>
+                        </div>
+                        <a href="/api/relatorios/download/${rel.ficheiro}" target="_blank" class="text-sm font-medium px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
+                            Descarregar PDF
+                        </a>
+                    `;
+                    lista.appendChild(card);
+                });
+                
+            } catch (err) {
+                lista.innerHTML = `<p class="text-sm text-red-500 text-center py-4">Erro ao carregar histórico: ${err.message}</p>`;
             }
         }
     </script>

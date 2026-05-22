@@ -746,7 +746,6 @@ def gerar_relatorio():
             pdf.multi_cell(0, 6, f"Porque: {justificacao}")
             pdf.ln(5)
             
-        # CORREÇÃO AQUI: O fpdf2 já devolve bytes diretamente, não precisa de .encode()
         pdf_bytes = pdf.output() 
         
         # 3. Guardar no Blob Storage
@@ -765,6 +764,15 @@ def gerar_relatorio():
         
         blob_client = blob_service_client.get_blob_client(container="relatorios", blob=blob_name)
         blob_client.upload_blob(bytes(pdf_bytes), overwrite=True)
+        
+        # ────────────────────────────────────────────────────────────────
+        # NOVO: Guardar metadados do relatório permanentemente no Cosmos DB
+        # ────────────────────────────────────────────────────────────────
+        data_atual = datetime.utcnow().strftime("%d/%m/%Y %H:%M")
+        db["Utilizadores"].update_one(
+            {"email": email},
+            {"$push": {"relatorios": {"ficheiro": blob_name, "data": data_atual}}}
+        )
         
         return jsonify({"sucesso": True, "mensagem": "Relatório gerado com sucesso!", "ficheiro": blob_name})
         
@@ -796,6 +804,24 @@ def download_relatorio(blob_name):
         print(f"Erro ao descarregar Relatório PDF: {e}")
         return jsonify({"erro": "Falha ao descarregar o ficheiro da Cloud."}), 500
 
+@app.route("/api/relatorios", methods=["GET"])
+@login_required
+def obter_relatorios():
+    try:
+        email = session["utilizador_email"]
+        utilizador = db["Utilizadores"].find_one({"email": email})
+        
+        if not utilizador:
+            return jsonify({"erro": "Utilizador não encontrado."}), 404
+            
+        # Vai buscar a lista de relatórios. Se não existir, devolve uma lista vazia.
+        lista_relatorios = utilizador.get("relatorios", [])
+        
+        # Devolvemos a lista invertida ([::-1]) para os mais recentes aparecerem no topo
+        return jsonify(lista_relatorios[::-1])
+    except Exception as e:
+        print(f"Erro ao obter histórico de relatórios: {e}")
+        return jsonify({"erro": str(e)}), 500
         
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True, use_reloader=False)
