@@ -714,11 +714,30 @@
             const cards = document.querySelectorAll('#grid-vagas > div');
             let visiveis = 0;
 
+            // Dicionário de sinónimos para os tipos de vagas
+            const sinonimosTipo = {
+                'emprego': ['emprego', 'full-time', 'part-time', 'contract', 'permanent', 'freelance'],
+                'estágio': ['estágio', 'estagio', 'internship', 'trainee', 'aprendiz'],
+                'bolsa': ['bolsa', 'scholarship', 'grant', 'research'],
+                'mestrado': ['mestrado', 'master'],
+                'erasmus': ['erasmus', 'exchange']
+            };
+
             cards.forEach(card => {
                 const matchPesquisa = !pesquisa
                     || card.dataset.titulo.includes(pesquisa)
                     || card.dataset.tags.includes(pesquisa);
-                const matchTipo = !tipo || card.dataset.tipo.includes(tipo);
+                
+                let matchTipo = false;
+                if (!tipo) {
+                    matchTipo = true;
+                } else {
+                    // Verificar se o tipo da vaga corresponde ao selecionado ou aos seus sinónimos
+                    const tipoVaga = card.dataset.tipo;
+                    const termosAceites = sinonimosTipo[tipo] || [tipo];
+                    
+                    matchTipo = termosAceites.some(termo => tipoVaga.includes(termo));
+                }
 
                 if (matchPesquisa && matchTipo) {
                     card.style.display = '';
