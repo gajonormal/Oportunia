@@ -616,6 +616,32 @@ def update_credenciais():
 
     return jsonify({"sucesso": True})
 
+@app.route("/api/conta/remove", methods=["DELETE"])
+@login_required
+def remove_conta():
+    email = session["utilizador_email"]
+    
+    # Podíamos apagar também os PDFs no Blob Storage, mas para simplificar apagamos o registo principal.
+    # Opcional: apagar currículo se existir
+    utilizador = db["Utilizadores"].find_one({"email": email})
+    if utilizador and "cv_blob_name" in utilizador:
+        try:
+            conn_str = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+            if conn_str:
+                blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+                blob_client = blob_service_client.get_blob_client(container="curriculos", blob=utilizador["cv_blob_name"])
+                blob_client.delete_blob()
+        except Exception:
+            pass
+
+    # Apagar o utilizador do Cosmos DB
+    db["Utilizadores"].delete_one({"email": email})
+    
+    # Limpar sessão
+    session.clear()
+    
+    return jsonify({"sucesso": True, "mensagem": "Conta apagada com sucesso."})
+
 
 @app.route("/api/recuperar-password", methods=["POST"])
 def recuperar_password():
