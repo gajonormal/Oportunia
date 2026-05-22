@@ -481,6 +481,35 @@ Texto do CV:
         print(f"Erro ao analisar CV: {e}")
         return jsonify({"erro": "Falha na análise do CV com a IA."}), 500
 
+@app.route("/api/cv/remove", methods=["DELETE"])
+@login_required
+def remove_cv():
+    email = session["utilizador_email"]
+    utilizador = db["Utilizadores"].find_one({"email": email})
+    
+    if not utilizador or "cv_blob_name" not in utilizador:
+        return jsonify({"erro": "Nenhum currículo guardado para remover."}), 404
+        
+    blob_name = utilizador["cv_blob_name"]
+    
+    # Tentar apagar do blob storage
+    conn_str = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+    if conn_str:
+        try:
+            blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+            blob_client = blob_service_client.get_blob_client(container="curriculos", blob=blob_name)
+            blob_client.delete_blob()
+        except Exception as e:
+            print(f"Erro ao apagar CV do Blob Storage: {e}")
+    
+    # Remover campos da base de dados
+    db["Utilizadores"].update_one(
+        {"email": email},
+        {"$unset": {"cv_blob_name": "", "cv_original_name": ""}}
+    )
+    
+    return jsonify({"sucesso": True})
+
 @app.route("/api/cv/download", methods=["GET"])
 @login_required
 def download_cv():
