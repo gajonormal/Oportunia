@@ -909,9 +909,9 @@
                     const textoErro = await res.text();
                     try {
                         const jsonErro = JSON.parse(textoErro);
-                        throw new Error(jsonErro.erro || 'Erro desconhecido no servidor.');
+                        throw new Error(jsonErro.erro || 'Ocorreu um erro interno no servidor.');
                     } catch(e) {
-                        throw new Error(`O servidor Flask crashou (Código ${res.status}). Verifica o terminal do VS Code.`);
+                        throw new Error(`Serviço temporariamente indisponível (Código ${res.status}). Por favor, tenta novamente mais tarde.`);
                     }
                 }
 
