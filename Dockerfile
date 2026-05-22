@@ -14,5 +14,5 @@ COPY . .
 # Expõe a porta 8000 (padrão do App Service Linux para Python)
 EXPOSE 8000
 
-# Comando para iniciar a API no Azure
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
+# Comando para iniciar a API no Azure (timeout de 120s para acomodar a IA)
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--timeout", "120", "app:app"]
