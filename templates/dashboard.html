@@ -552,13 +552,11 @@
 
 
     <script>
-        // ── Dados globais ──
+        // --- Variáveis Globais ---
         let vagasCarregadas = [];
         let aiLoaderTimer = null;
 
-        // ════════════════════════════════
-        // Carregar recomendações via IA
-        // ════════════════════════════════
+        // Função responsável por pedir as vagas ao backend e mostrar o ecrã de carregamento
         async function carregarRecomendacoes() {
             // Reset estados
             document.getElementById('estado-loading').classList.remove('hidden');
@@ -620,9 +618,7 @@
             }
         }
 
-        // ════════════════════════════════
-        // Renderizar cards
-        // ════════════════════════════════
+        // Funções auxiliares para calcular a cor das pontuações de match da IAs
         function scoreClass(score) {
             if (score >= 7) return 'score-high';
             if (score >= 4) return 'score-medium';
@@ -705,9 +701,7 @@
             grid.classList.add('grid');
         }
 
-        // ════════════════════════════════
-        // Filtrar cards
-        // ════════════════════════════════
+        // Filtra as vagas visíveis mediante o texto de pesquisa e a categoria selecionada
         function filtrarCards() {
             const pesquisa = document.getElementById('input-pesquisa').value.toLowerCase();
             const tipo = document.getElementById('filtro-tipo').value.toLowerCase();
@@ -751,9 +745,7 @@
             document.getElementById('estado-vazio').classList.toggle('hidden', visiveis > 0);
         }
 
-        // ════════════════════════════════
-        // Modal
-        // ════════════════════════════════
+        // Lógica de abertura e preenchimento da Janela Modal de Detalhes da Vaga
         function openModal(vaga) {
             document.getElementById('modal-titulo').textContent = vaga.titulo || 'Detalhes';
 
@@ -857,9 +849,7 @@
 
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-        // ════════════════════════════════
-        // Tabs
-        // ════════════════════════════════
+        // Alternar entre a aba de 'Oportunidades' e 'Relatórios'
        function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('btn-feed').className = "px-4 py-1.5 text-sm font-semibold rounded-md text-slate-500 opacity-60 hover:opacity-100 flex items-center gap-2 transition-all";
@@ -873,9 +863,7 @@
             }
         }
 
-        // ════════════════════════════════
-        // Utilitário: escape HTML
-        // ════════════════════════════════
+        // Função auxiliar para sanitizar strings e prevenir ataques de injeção HTML (XSS)
         function escapeHtml(str) {
             if (typeof str !== 'string') return str || '';
             return str
@@ -889,9 +877,7 @@
         // ── Iniciar ao carregar a página ──
 
 
-        // ════════════════════════════════
-        // Gerar Relatório PDF
-        // ════════════════════════════════
+        // Pedir ao backend para construir um novo Relatório em PDF na hora
         async function gerarRelatorio() {
             const btn = document.getElementById('btn-gerar-relatorio');
             const lista = document.getElementById('lista-relatorios');
@@ -960,9 +946,7 @@
         }
 
 
-        // ════════════════════════════════════════
-        // Carregar Histórico de Relatórios da BD
-        // ════════════════════════════════════════
+        // Vai buscar o histórico completo dos PDFs antigos à Base de Dados para os listar
         async function carregarHistoricoRelatorios() {
             const lista = document.getElementById('lista-relatorios');
             
@@ -1031,9 +1015,7 @@
         }
 
 
-        // ════════════════════════════════════════════════
-        // NOVO: Abrir Relatórios automaticamente via URL
-        // ════════════════════════════════════════════════
+        // Arranque inicial da página - executa assim que o HTML for processado
         window.addEventListener('DOMContentLoaded', () => {
             carregarRecomendacoes();
             carregarHistoricoRelatorios(); // NOVO: Iniciar logo o fetch

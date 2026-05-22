@@ -567,7 +567,7 @@
     </div>
 
     <script>
-        // ── Edição do cabeçalho ──
+        // Lógica de transição entre o modo de visualização e o modo de edição do cabeçalho
         function toggleEdit() {
             document.getElementById('view-mode').classList.add('hidden');
             document.getElementById('edit-mode').classList.remove('hidden');
@@ -653,7 +653,7 @@
             document.getElementById('view-mode').classList.remove('hidden');
         }
 
-        // ── Tags (competências e cadeiras) ──
+        // Funções auxiliares para adicionar, remover e listar as tags (competências, cadeiras, etc.)
         function addTag(inputId, containerId, tipo) {
             const input = document.getElementById(inputId);
             const valor = input.value.trim();
@@ -694,7 +694,7 @@
             if (e.key === 'Enter') { e.preventDefault(); addTag('input-projetos', 'tags-projetos', 'projetos'); }
         });
 
-        // ── Upload de CV (One-Time Parsing) ──
+        // Lógica de Drag & Drop para o upload do Currículo e processamento assíncrono via IA
         const cvUpload = document.getElementById('cv-upload');
         const cvDropzone = document.getElementById('cv-dropzone');
         const stateIdle = document.getElementById('cv-state-idle');
@@ -847,7 +847,7 @@
             }
         }
 
-        // ── Chips radio (disponibilidade) ──
+        // Controlo visual dos botões de seleção de disponibilidade (chips)
         document.querySelectorAll('#chips-disponibilidade .chip-input').forEach(input => {
             input.addEventListener('change', () => {
                 document.querySelectorAll('#chips-disponibilidade .chip-input').forEach(i => {
@@ -872,7 +872,7 @@
             }
         });
 
-        // ── Toast ──
+        // Função global para exibir mensagens temporárias de feedback ao utilizador (Toasts)
         function showToast(msg, tipo = 'sucesso') {
             const toast = document.getElementById('toast');
             toast.className = `fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white flex items-center gap-2 transition-all`;
@@ -882,7 +882,7 @@
             setTimeout(() => toast.classList.add('hidden'), 3500);
         }
 
-        // ── Guardar perfil ──
+        // Recolhe todos os dados do formulário e envia para a API atualizar a BD
         async function guardarPerfil() {
             const btn = document.getElementById('btn-guardar');
             btn.disabled = true;
@@ -937,7 +937,7 @@
         }
 
 
-        // ── Apagar conta ──
+        // Lógica crítica: Confirmação e remoção irreversível da conta do utilizador
         async function apagarConta() {
             if (!confirm('Tens a certeza absoluta que queres APAGAR a tua conta? Esta ação é irreversível e todos os teus dados serão perdidos!')) return;
             

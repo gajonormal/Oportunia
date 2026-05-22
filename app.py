@@ -17,12 +17,12 @@ import io
 from werkzeug.utils import secure_filename
 from azure.storage.blob import BlobServiceClient
 
-# Carrega as variáveis de ambiente a partir do ficheiro .env local
+# Carregar as variáveis de ambiente locais do ficheiro .env
 load_dotenv()
 
 app = Flask(__name__)
 
-# Configurações dinâmicas lidas de forma segura a partir do ambiente local (.env)
+# Definir a chave secreta da aplicação (essencial para as sessões de login)
 app.secret_key = os.environ.get("SECRET_KEY", "chave-secreta-de-desenvolvimento")
 serializer = URLSafeTimedSerializer(app.secret_key)
 
@@ -30,16 +30,14 @@ MONGO_URI = os.environ.get("LIGACAO_COSMOS", "mongodb://localhost:27017/")
 client = MongoClient(MONGO_URI, tlsAllowInvalidCertificates=True)
 db = client["OportuniaDB"]
 
-# Inicialização segura do cliente Azure OpenAI sem expor dados no código fonte
+# Inicializar a ligação ao modelo Azure OpenAI para processamento inteligente
 AI_CLIENT = AzureOpenAI(
     api_key=os.environ.get("AZURE_OPENAI_KEY"),
     api_version="2024-12-01-preview",
     azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT")
 )
 
-# ─────────────────────────────────────────────
-# Decorator: protege rotas que requerem login
-# ─────────────────────────────────────────────
+# Um decorador personalizado para forçar o login nas rotas privadas
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -49,9 +47,7 @@ def login_required(f):
     return decorated
 
 
-# ─────────────────────────────────────────────
-# PÁGINAS PÚBLICAS
-# ─────────────────────────────────────────────
+# --- PÁGINAS PÚBLICAS ---
 
 @app.route("/")
 def index():
@@ -152,9 +148,7 @@ def registo_post():
     return redirect(url_for("perfil"))
 
 
-# ─────────────────────────────────────────────
-# PÁGINAS PRIVADAS
-# ─────────────────────────────────────────────
+# --- PÁGINAS PRIVADAS ---
 
 @app.route("/oportunidades")
 @login_required
@@ -181,9 +175,7 @@ def perfil():
     return render_template("perfil.html", utilizador=utilizador)
 
 
-# ─────────────────────────────────────────────
-# API ENDPOINTS
-# ─────────────────────────────────────────────
+# --- API (Comunicação Frontend-Backend) ---
 
 @app.route("/api/vagas", methods=["GET"])
 def get_vagas_api():
@@ -808,9 +800,7 @@ def gerar_relatorio():
         return jsonify({"erro": f"Erro interno no servidor: {str(e)}"}), 500
     
 
-    # ──────────────────────────────────────────────────────────────────
-# MOTOR AUTOMÁTICO: GERAÇÃO DE RELATÓRIOS SEMANAIS
-# ──────────────────────────────────────────────────────────────────
+# --- MOTOR AUTOMÁTICO: GERAÇÃO DE RELATÓRIOS SEMANAIS ---
 def job_relatorios_semanais():
     print("[SCHEDULER] A iniciar rotina de relatórios semanais...")
     
@@ -938,9 +928,7 @@ def obter_relatorios():
         return jsonify({"erro": str(e)}), 500
 
 
-        # ──────────────────────────────────────────────────────────────────
-# INICIALIZAR O AGENDADOR DE TAREFAS (CRON JOB)
-# ──────────────────────────────────────────────────────────────────
+# --- INICIALIZAR O AGENDADOR DE TAREFAS (CRON JOB) ---
 scheduler = BackgroundScheduler(daemon=True)
 # Configurado para correr todas as Sextas-feiras às 18:00
 scheduler.add_job(func=job_relatorios_semanais, trigger="cron", day_of_week='fri', hour=18, minute=0)

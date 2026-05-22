@@ -18,9 +18,7 @@ def limpar_html(texto):
     texto = re.sub(r'<[^>]+>', '', texto)
     return texto.strip()
 
-# ==========================================
-# TRABALHADORES (Funções de Extração)
-# ==========================================
+# --- Funções de Extração de Vagas por API ---
 
 # --- TRABALHADOR 1: ITJobs ---
 def extrair_itjobs(chave):
@@ -143,9 +141,7 @@ def extrair_remotive():
     return vagas_formatadas
 
 
-# ==========================================
-# NOTIFICAÇÕES (Alertas por E-mail)
-# ==========================================
+# --- Módulo de Envio de Notificações por Email ---
 def enviar_notificacoes(db, total_novas_vagas):
     logging.info("A iniciar o processo de notificações por e-mail...")
     
@@ -219,9 +215,7 @@ def enviar_notificacoes(db, total_novas_vagas):
     except Exception as e:
         logging.error(f"Erro ao conectar ao servidor SMTP: {e}")
 
-# ==========================================
-# ORQUESTRADOR (A Função Principal)
-# ==========================================
+# --- Função Principal de Orquestração (Cron Job Diário) ---
 
 @app.timer_trigger(schedule="0 0 8 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
 def ScraperOportunia(myTimer: func.TimerRequest) -> None:
