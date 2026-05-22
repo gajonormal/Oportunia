@@ -200,10 +200,6 @@
                         <button type="button" onclick="saveEdit()"
                             style="background-color: hsl(var(--primary));"
                             class="flex-1 px-5 h-10 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors shadow-sm flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7"></path>
-                            </svg>
                             Guardar
                         </button>
                         <button type="button" onclick="apagarConta()" title="Apagar Conta Definitivamente" class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 border border-red-100 transition-colors">
@@ -564,9 +560,6 @@
             <button type="button" id="btn-guardar" onclick="guardarPerfil()"
                 style="background-color: hsl(var(--primary));"
                 class="w-full text-white font-semibold text-sm h-12 rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
                 Guardar Perfil e Obter Recomendações
             </button>
         </div>
@@ -641,14 +634,14 @@
                         showToast('Erro: ' + (resultado.erro || 'Tenta novamente.'), 'erro');
                         return;
                     }
-                    showToast('✓ Credenciais atualizadas!', 'sucesso');
+                    showToast('Credenciais atualizadas!', 'sucesso');
                     // Se mudou o email, faz logout após mostrar o toast
                     if (novoEmail) {
                         setTimeout(() => window.location.href = '/logout', 1800);
                         return;
                     }
                 } else {
-                    showToast('✓ Informações guardadas!', 'sucesso');
+                    showToast('Informações guardadas!', 'sucesso');
                 }
 
             } catch (err) {
@@ -931,7 +924,7 @@
                 const resultado = await resp.json();
 
                 if (resp.ok && resultado.sucesso) {
-                    showToast('✓ Perfil guardado com sucesso!', 'sucesso');
+                    showToast('Perfil guardado com sucesso!', 'sucesso');
                 } else {
                     showToast('Erro: ' + (resultado.erro || 'Tenta novamente.'), 'erro');
                 }
@@ -939,7 +932,7 @@
                 showToast('Erro de ligação. Tenta novamente.', 'erro');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Guardar Perfil e Obter Recomendações';
+                btn.innerHTML = 'Guardar Perfil e Obter Recomendações';
             }
         }
 

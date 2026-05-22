@@ -940,7 +940,7 @@
                 // Mostra um toast de sucesso ou caixa bonita (reaproveitando o div de erro para sucesso mas mudando a cor temporariamente)
                 const alertDiv = document.getElementById('erro-gerar-relatorio');
                 alertDiv.className = "mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 flex items-center gap-2 shadow-sm";
-                alertDiv.innerHTML = `<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span>Sucesso! Relatório PDF gerado e guardado no Azure Storage.</span>`;
+                alertDiv.innerHTML = `<span>Sucesso! Relatório PDF gerado e guardado no Azure Storage.</span>`;
                 alertDiv.classList.remove('hidden');
                 setTimeout(() => alertDiv.classList.add('hidden'), 5000);
 
