@@ -410,47 +410,9 @@ def save_perfil():
     if "nome" in atualizacao:
         session["utilizador_nome"] = atualizacao["nome"]
 
-    # 2. 🤖 INTEGRAÇÃO AZURE OPENAI: Gerar recomendações baseadas no perfil armazenado
-    recomendacoes_ia = ""
-    try:
-        vagas_disponiveis = list(db["Vagas"].find({}, {"_id": 0}))
-        
-        prompt_sistema = "És um sistema de IA integrado no portal Oportunia. O teu objetivo é analisar o perfil do estudante e sugerir quais as melhores vagas/oportunidades com base nas suas competências e cadeiras favoritas."
-        
-        prompt_utilizador = f"""
-        Perfil do Estudante:
-        - Nome: {atualizacao.get('nome', 'Estudante')}
-        - Curso: {atualizacao.get('curso', '')} em {atualizacao.get('instituicao', '')}
-        - Competências Técnicas: {', '.join(atualizacao.get('competencias_tecnicas', []))}
-        - Cadeiras Favoritas: {', '.join(atualizacao.get('cadeiras_favoritas', []))}
-        - Preferência de Localização: {', '.join(atualizacao.get('localizacoes_preferidas', []))}
-        - Tipo de Oportunidade pretendida: {', '.join(atualizacao.get('tipos_oportunidade', []))}
-        
-        Lista de Vagas Disponíveis no Sistema:
-        {vagas_disponiveis}
-        
-        Com base nestes dados, gera uma resposta curta, direta e motivadora em formato de texto para o utilizador. 
-        Diz quais as vagas que melhor combinam com ele e porquê. Se não houver nenhuma vaga ideal, dá conselhos de que competências ele deve desenvolver.
-        """
-
-        resposta = AI_CLIENT.chat.completions.create(
-            model="gpt-4o",  
-            messages=[
-                {"role": "system", "content": prompt_sistema},
-                {"role": "user", "content": prompt_utilizador}
-            ],
-            max_tokens=800,
-            temperature=0.7
-        )
-        recomendacoes_ia = resposta.choices[0].message.content
-
-    except Exception as ex:
-        recomendacoes_ia = f"Não foi possível obter recomendações automáticas neste momento. (Erro: {str(ex)})"
-
     return jsonify({
         "sucesso": True, 
-        "mensagem": "Perfil atualizado com sucesso",
-        "recomendacoes": recomendacoes_ia
+        "mensagem": "Perfil atualizado com sucesso"
     })
 
 
