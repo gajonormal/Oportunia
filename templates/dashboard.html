@@ -965,15 +965,25 @@
                 // Limpar a lista e renderizar cada relatório guardado
                 lista.innerHTML = '';
                 relatorios.forEach(rel => {
+                    const isAutomatico = rel.tipo === 'automatico';
+                    const badgeClass = isAutomatico
+                        ? 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100'
+                        : 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200';
+                    const badgeLabel = isAutomatico ? 'Gerado Automaticamente' : 'Gerado Manualmente';
+                    const titulo = isAutomatico ? 'Relat\u00f3rio Semanal (Autom\u00e1tico)' : 'Relat\u00f3rio de Oportunidades';
+
                     const card = document.createElement('div');
                     card.className = 'card-elevated rounded-xl p-4 flex items-center justify-between border border-slate-200 bg-white mb-3';
                     card.innerHTML = `
                         <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded bg-red-50 text-red-500 flex items-center justify-center">
+                            <div class="w-10 h-10 rounded ${isAutomatico ? 'bg-blue-50 text-blue-500' : 'bg-red-50 text-red-500'} flex items-center justify-center">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                             </div>
                             <div>
-                                <p class="font-semibold text-sm text-slate-900">Relatório de Oportunidades (IA)</p>
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <p class="font-semibold text-sm text-slate-900">${titulo}</p>
+                                    <span class="${badgeClass}">${badgeLabel}</span>
+                                </div>
                                 <p class="text-xs text-slate-500">Gerado em: ${escapeHtml(rel.data)} • Azure Blob Storage</p>
                             </div>
                         </div>

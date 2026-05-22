@@ -772,7 +772,7 @@ def gerar_relatorio():
         data_atual = datetime.utcnow().strftime("%d/%m/%Y %H:%M")
         db["Utilizadores"].update_one(
             {"email": email},
-            {"$push": {"relatorios": {"ficheiro": blob_name, "data": data_atual}}}
+            {"$push": {"relatorios": {"ficheiro": blob_name, "data": data_atual, "tipo": "manual"}}}
         )
         
         return jsonify({"sucesso": True, "mensagem": "Relatório gerado com sucesso!", "ficheiro": blob_name})
@@ -819,7 +819,7 @@ def job_relatorios_semanais():
             pdf = FPDF()
             pdf.add_page()
             pdf.set_font("Arial", 'B', 16)
-            pdf.cell(0, 10, "Oportunia - Relatorio Semanal", ln=True, align='C')
+            pdf.cell(0, 10, "Oportunia - Relatorio Semanal (Gerado Automaticamente)", ln=True, align='C')
             pdf.set_font("Arial", '', 12)
             pdf.cell(0, 10, f"Estudante: {nome}", ln=True, align='C')
             pdf.ln(10)
@@ -847,7 +847,7 @@ def job_relatorios_semanais():
             data_atual = datetime.utcnow().strftime("%d/%m/%Y %H:%M")
             db["Utilizadores"].update_one(
                 {"email": email},
-                {"$push": {"relatorios": {"ficheiro": blob_name, "data": data_atual}}}
+                {"$push": {"relatorios": {"ficheiro": blob_name, "data": data_atual, "tipo": "automatico"}}}
             )
             relatorios_gerados += 1
             print(f"[SCHEDULER] Relatório gerado com sucesso para {email}.")
