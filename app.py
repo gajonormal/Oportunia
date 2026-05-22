@@ -10,6 +10,10 @@ from dotenv import load_dotenv  #Carregar biblioteca para ler o ficheiro .env
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
 import smtplib
 from email.message import EmailMessage
+import PyPDF2
+import io
+from werkzeug.utils import secure_filename
+from azure.storage.blob import BlobServiceClient
 
 # Carrega as variáveis de ambiente a partir do ficheiro .env local
 load_dotenv()
@@ -378,6 +382,138 @@ Ordena do score mais alto para o mais baixo. Inclui todas as {len(vagas_resumo)}
     })
 
 
+@app.route("/api/parse_cv", methods=["POST"])
+@login_required
+def parse_cv():
+    if "cv" not in request.files:
+        return jsonify({"erro": "Nenhum ficheiro recebido."}), 400
+        
+    file = request.files["cv"]
+    if file.filename == "":
+        return jsonify({"erro": "Nenhum ficheiro selecionado."}), 400
+        
+    if not file.filename.lower().endswith('.pdf'):
+        return jsonify({"erro": "Apenas são suportados ficheiros PDF."}), 400
+
+    try:
+        pdf_reader = PyPDF2.PdfReader(file)
+        texto_cv = ""
+        for page in pdf_reader.pages:
+            texto_cv += page.extract_text() + "\n"
+            
+        if not texto_cv.strip():
+            return jsonify({"erro": "Não foi possível extrair texto deste PDF (poderá ser uma imagem)."}), 400
+
+        prompt_sistema = "És um assistente de Recursos Humanos especialista em extração de currículos."
+        prompt_utilizador = f"""
+Extrai as seguintes informações deste CV:
+1. Nome da Instituição de ensino atual ou mais recente (String).
+2. Nome do Curso ou Licenciatura/Mestrado (String).
+3. Competências Técnicas (Hard Skills, Tecnologias, Frameworks) (Lista de Strings).
+4. Idiomas falados (Lista de Strings).
+5. Projetos relevantes (Lista de Strings curtas).
+
+Devolve ESTRITAMENTE um objeto JSON válido, sem markdown, sem blocos de código (```json), com esta exata estrutura:
+{{
+  "instituicao": "nome",
+  "curso": "nome",
+  "competencias": ["React", "Python"],
+  "linguas": ["Inglês", "Espanhol"],
+  "projetos": ["Projeto A", "Sistema B"]
+}}
+
+Texto do CV:
+{texto_cv}
+"""
+        resposta = AI_CLIENT.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": prompt_sistema},
+                {"role": "user", "content": prompt_utilizador}
+            ],
+            max_tokens=1000,
+            temperature=0.2,
+            response_format={"type": "json_object"}
+        )
+        
+        conteudo = resposta.choices[0].message.content
+        dados_extraidos = json.loads(conteudo)
+        
+        # ─────────────────────────────────────────────
+        # Integração Azure Blob Storage
+        # ─────────────────────────────────────────────
+        email_utilizador = session.get("utilizador_email")
+        if email_utilizador:
+            try:
+                conn_str = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+                if conn_str:
+                    blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+                    container_name = "curriculos"
+                    
+                    container_client = blob_service_client.get_container_client(container_name)
+                    if not container_client.exists():
+                        container_client.create_container()
+                        
+                    original_name = secure_filename(file.filename)
+                    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+                    prefix = email_utilizador.split('@')[0]
+                    blob_name = f"{prefix}_{timestamp}_{original_name}"
+                    
+                    blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+                    file.seek(0)
+                    blob_client.upload_blob(file.read(), overwrite=True)
+                    
+                    db["Utilizadores"].update_one(
+                        {"email": email_utilizador}, 
+                        {"$set": {"cv_blob_name": blob_name, "cv_original_name": file.filename}}
+                    )
+                else:
+                    print("AVISO: AZURE_STORAGE_CONNECTION_STRING não definida. Ficheiro não guardado na Cloud.")
+            except Exception as blob_err:
+                print(f"Erro ao gravar no Blob Storage: {blob_err}")
+
+        return jsonify({
+            "sucesso": True,
+            "dados": dados_extraidos
+        })
+        
+    except Exception as e:
+        print(f"Erro ao analisar CV: {e}")
+        return jsonify({"erro": "Falha na análise do CV com a IA."}), 500
+
+@app.route("/api/cv/download", methods=["GET"])
+@login_required
+def download_cv():
+    email = session["utilizador_email"]
+    utilizador = db["Utilizadores"].find_one({"email": email})
+    
+    if not utilizador or "cv_blob_name" not in utilizador:
+        return jsonify({"erro": "Nenhum currículo guardado."}), 404
+        
+    blob_name = utilizador["cv_blob_name"]
+    original_name = utilizador.get("cv_original_name", "curriculo.pdf")
+    
+    conn_str = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+    if not conn_str:
+        return jsonify({"erro": "Configuração de Cloud Storage em falta no servidor."}), 500
+        
+    try:
+        blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+        blob_client = blob_service_client.get_blob_client(container="curriculos", blob=blob_name)
+        
+        download_stream = blob_client.download_blob()
+        file_content = download_stream.readall()
+        
+        return app.response_class(
+            file_content,
+            headers={"Content-Disposition": f"attachment; filename={original_name}"},
+            mimetype="application/pdf"
+        )
+    except Exception as e:
+        print(f"Erro ao descarregar CV: {e}")
+        return jsonify({"erro": "Falha ao descarregar o ficheiro da Cloud."}), 500
+
+
 @app.route("/api/perfil", methods=["POST"])
 @login_required
 def save_perfil():
@@ -388,7 +524,7 @@ def save_perfil():
         "nome", "headline", "instituicao", "curso",
         "links", "competencias_tecnicas", "cadeiras_favoritas",
         "localizacoes_preferidas", "tipos_oportunidade",
-        "disponibilidade", "notificacoes"
+        "disponibilidade", "notificacoes", "linguas", "projetos"
     ]
 
     atualizacao = {k: dados[k] for k in campos_permitidos if k in dados}

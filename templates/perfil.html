@@ -285,6 +285,54 @@
                 class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-500 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] focus:bg-white transition-colors">
         </div>
 
+        <!-- Idiomas -->
+        <div class="card-elevated p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-sm text-slate-800">Idiomas</h3>
+                    <p class="text-[11px] text-slate-400">Línguas que falas ou escreves</p>
+                </div>
+            </div>
+            <div id="tags-linguas" class="flex flex-wrap gap-2 mb-3">
+                {% for ling in utilizador.linguas %}
+                <span class="tag">{{ ling }} <span class="tag-remove"
+                        onclick="removeTag(this, 'linguas')">×</span></span>
+                {% endfor %}
+            </div>
+            <input type="text" id="input-linguas" placeholder="Escreve um idioma e pressiona Enter..."
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-500 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] focus:bg-white transition-colors">
+        </div>
+
+        <!-- Projetos Relevantes -->
+        <div class="card-elevated p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-sm text-slate-800">Projetos Relevantes</h3>
+                    <p class="text-[11px] text-slate-400">Projetos académicos ou pessoais</p>
+                </div>
+            </div>
+            <div id="tags-projetos" class="flex flex-wrap gap-2 mb-3">
+                {% for proj in utilizador.projetos %}
+                <span class="tag">{{ proj }} <span class="tag-remove"
+                        onclick="removeTag(this, 'projetos')">×</span></span>
+                {% endfor %}
+            </div>
+            <input type="text" id="input-projetos" placeholder="Escreve o nome de um projeto e pressiona Enter..."
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-500 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary))] focus:bg-white transition-colors">
+        </div>
+
         <!-- Cadeiras Favoritas -->
         <div class="card-elevated p-6">
             <div class="flex items-center gap-3 mb-4">
@@ -412,19 +460,48 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="font-semibold text-sm text-slate-800">Currículo (CV)</h3>
-                    <p class="text-[11px] text-slate-400">Faz upload do teu CV em PDF para te candidatares</p>
+                    <h3 class="font-semibold text-sm text-slate-800">Extração Inteligente (CV)</h3>
+                    <p class="text-[11px] text-slate-400">A IA vai extrair as tuas competências e preencher o perfil</p>
                 </div>
             </div>
-            <div
-                class="border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-xl p-10 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors">
-                <svg class="w-8 h-8 text-slate-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                </svg>
-                <p class="font-semibold text-sm text-slate-900">Arrasta o teu CV para aqui</p>
-                <p class="text-[10px] text-slate-500 mt-1">ou clica para selecionar • PDF até 10MB</p>
+            
+            <input type="file" id="cv-upload" accept="application/pdf" class="hidden">
+            
+            <div id="cv-dropzone" onclick="document.getElementById('cv-upload').click()"
+                class="border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-xl p-10 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 hover:border-slate-300 transition-colors relative">
+                
+                <div id="cv-state-idle" class="flex flex-col items-center">
+                    <svg class="w-8 h-8 text-slate-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                    <p class="font-semibold text-sm text-slate-900">Arrasta o teu CV para aqui</p>
+                    <p class="text-[10px] text-slate-500 mt-1">ou clica para selecionar • Apenas PDF</p>
+                </div>
+
+                <div id="cv-state-loading" class="hidden flex flex-col items-center w-full max-w-xs mx-auto">
+                    <div class="w-full bg-slate-200 rounded-full h-2.5 mb-3 overflow-hidden">
+                        <div id="cv-progress-bar" class="bg-[hsl(var(--primary))] h-2.5 rounded-full" style="width: 0%; transition: width 0.3s ease;"></div>
+                    </div>
+                    <p class="font-semibold text-sm text-[hsl(var(--primary))]">A processar na nuvem...</p>
+                    <p class="text-[10px] text-slate-500 mt-1">A IA está a ler as tuas competências</p>
+                </div>
             </div>
+
+            {% if utilizador.cv_blob_name %}
+            <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-blue-900">CV Atual</p>
+                        <p class="text-[10px] text-blue-600">{{ utilizador.cv_original_name }}</p>
+                    </div>
+                </div>
+                <a href="/api/cv/download" target="_blank" class="px-3 py-1.5 text-[11px] font-semibold bg-white text-blue-600 border border-blue-200 rounded hover:bg-blue-100 transition-colors shadow-sm">Ver CV</a>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Notificações -->
@@ -609,6 +686,138 @@
         document.getElementById('input-cadeiras').addEventListener('keydown', e => {
             if (e.key === 'Enter') { e.preventDefault(); addTag('input-cadeiras', 'tags-cadeiras', 'cadeiras'); }
         });
+        document.getElementById('input-linguas').addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); addTag('input-linguas', 'tags-linguas', 'linguas'); }
+        });
+        document.getElementById('input-projetos').addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); addTag('input-projetos', 'tags-projetos', 'projetos'); }
+        });
+
+        // ── Upload de CV (One-Time Parsing) ──
+        const cvUpload = document.getElementById('cv-upload');
+        const cvDropzone = document.getElementById('cv-dropzone');
+        const stateIdle = document.getElementById('cv-state-idle');
+        const stateLoading = document.getElementById('cv-state-loading');
+
+        cvDropzone.addEventListener('dragover', e => {
+            e.preventDefault();
+            cvDropzone.classList.add('border-[hsl(var(--primary))]');
+            cvDropzone.classList.add('bg-blue-50/50');
+        });
+        cvDropzone.addEventListener('dragleave', e => {
+            e.preventDefault();
+            cvDropzone.classList.remove('border-[hsl(var(--primary))]');
+            cvDropzone.classList.remove('bg-blue-50/50');
+        });
+        cvDropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            cvDropzone.classList.remove('border-[hsl(var(--primary))]');
+            cvDropzone.classList.remove('bg-blue-50/50');
+            
+            if (e.dataTransfer.files.length > 0) {
+                const file = e.dataTransfer.files[0];
+                if (file.type === "application/pdf") {
+                    processarCV(file);
+                } else {
+                    showToast('Apenas suportamos ficheiros PDF.', 'erro');
+                }
+            }
+        });
+        cvUpload.addEventListener('change', e => {
+            if (e.target.files.length > 0) {
+                processarCV(e.target.files[0]);
+            }
+        });
+
+        async function processarCV(file) {
+            // UI Loading
+            stateIdle.classList.add('hidden');
+            stateLoading.classList.remove('hidden');
+            cvDropzone.style.pointerEvents = 'none';
+            
+            const progressBar = document.getElementById('cv-progress-bar');
+            progressBar.style.width = '0%';
+            
+            // Simular progresso
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                if (progress < 90) {
+                    progress += Math.random() * 10;
+                    progressBar.style.width = `${Math.min(progress, 90)}%`;
+                }
+            }, 400);
+
+            const formData = new FormData();
+            formData.append('cv', file);
+
+            try {
+                const response = await fetch('/api/parse_cv', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                await new Promise(resolve => setTimeout(resolve, 400)); // Esperar barra preencher
+                
+                const data = await response.json();
+                
+                if (response.ok && data.sucesso) {
+                    const aiData = data.dados;
+                    
+                    // Preencher Instituição e Curso
+                    if (aiData.instituicao) {
+                        document.getElementById('input-inst').value = aiData.instituicao;
+                        document.getElementById('display-inst').innerText = aiData.instituicao;
+                    }
+                    if (aiData.curso) {
+                        document.getElementById('input-course').value = aiData.curso;
+                        document.getElementById('display-course').innerText = aiData.curso;
+                    }
+                    
+                    // Helper para injetar tags
+                    const injectTags = (items, containerId) => {
+                        const container = document.getElementById(containerId);
+                        const existentes = [...container.querySelectorAll('.tag')].map(t => t.textContent.replace('×', '').trim());
+                        
+                        items.forEach(item => {
+                            if (!existentes.includes(item)) {
+                                const span = document.createElement('span');
+                                span.className = 'tag animate-pulse bg-green-100 text-green-800 border-green-200'; // Destacar novas
+                                span.innerHTML = `${item} <span class="tag-remove text-green-400 hover:text-green-800" onclick="removeTag(this, 'nova')">×</span>`;
+                                container.appendChild(span);
+                                
+                                // Remover highlight após 3 seg
+                                setTimeout(() => {
+                                    span.className = 'tag';
+                                    span.innerHTML = `${item} <span class="tag-remove" onclick="removeTag(this, 'nova')">×</span>`;
+                                }, 3000);
+                            }
+                        });
+                    };
+
+                    if (aiData.competencias) injectTags(aiData.competencias, 'tags-competencias');
+                    if (aiData.linguas) injectTags(aiData.linguas, 'tags-linguas');
+                    if (aiData.projetos) injectTags(aiData.projetos, 'tags-projetos');
+
+                    showToast('CV analisado e guardado! Clica em Guardar no fundo da página.', 'sucesso');
+                    
+                    // Recarregar a página para exibir o novo botão de CV Guardado
+                    setTimeout(() => window.location.reload(), 1500);
+
+                } else {
+                    showToast(data.erro || 'Falha ao processar o CV.', 'erro');
+                }
+            } catch (err) {
+                showToast('Erro de ligação. Tenta novamente.', 'erro');
+            } finally {
+                // Reset UI
+                stateLoading.classList.add('hidden');
+                stateIdle.classList.remove('hidden');
+                cvDropzone.style.pointerEvents = 'auto';
+                cvUpload.value = ''; // Limpar input
+            }
+        }
 
         // ── Chips radio (disponibilidade) ──
         document.querySelectorAll('#chips-disponibilidade .chip-input').forEach(input => {
@@ -667,6 +876,8 @@
                 },
                 competencias_tecnicas: getTagValues('tags-competencias'),
                 cadeiras_favoritas: getTagValues('tags-cadeiras'),
+                linguas: getTagValues('tags-linguas'),
+                projetos: getTagValues('tags-projetos'),
                 localizacoes_preferidas: localizacoes,
                 tipos_oportunidade: tipos,
                 disponibilidade: disponibilidade,
