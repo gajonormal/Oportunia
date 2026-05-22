@@ -206,6 +206,7 @@
                     feedback.textContent = res.mensagem;
                     feedback.className = 'text-sm px-3 py-2 rounded-lg bg-green-50 text-green-700 border border-green-100 block';
                     setTimeout(() => closeForgotModal(), 4000);
+                    return; // Sai da função mantendo o botão desativado
                 } else {
                     feedback.textContent = res.erro || 'Ocorreu um erro.';
                     feedback.className = 'text-sm px-3 py-2 rounded-lg bg-red-50 text-red-600 border border-red-100 block';
@@ -213,11 +214,12 @@
             } catch (err) {
                 feedback.textContent = 'Erro de ligação. Tenta novamente.';
                 feedback.className = 'text-sm px-3 py-2 rounded-lg bg-red-50 text-red-600 border border-red-100 block';
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Enviar Instruções';
-                btn.classList.remove('opacity-70');
             }
+            
+            // Só volta a ativar o botão se algo falhou
+            btn.disabled = false;
+            btn.textContent = 'Enviar Instruções';
+            btn.classList.remove('opacity-70');
         }
     </script>
 
