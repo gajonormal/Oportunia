@@ -508,7 +508,6 @@
             </div>
         </div>
 
-        <!-- Notificações -->
         <div class="card-elevated p-6">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
@@ -552,6 +551,16 @@
                         </div>
                     </label>
                 </div>
+
+                <div class="pt-2">
+                    <button id="btn-relatorio-perfil" type="button" onclick="gerarRelatorioSemanal()" class="w-full sm:w-auto px-4 py-2.5 text-white text-xs font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 hover:opacity-90" style="background-color: hsl(var(--primary));">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Testar e Gerar Relatório Semanal Agora
+                    </button>
+                    
+                    <div id="resultado-relatorio-perfil" class="mt-3 hidden"></div>
+                </div>
+
             </div>
         </div>
 
@@ -938,6 +947,59 @@
                 btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Guardar Perfil e Obter Recomendações';
             }
         }
+
+
+        // ════════════════════════════════════════════════
+// Função para gerar o Relatório Semanal via Perfil
+// ════════════════════════════════════════════════
+async function gerarRelatorioSemanal() {
+    const btn = document.getElementById('btn-relatorio-perfil');
+    const resultado = document.getElementById('resultado-relatorio-perfil');
+
+    // Mudar o botão para estado de carregamento
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = `<svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> A processar...`;
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    resultado.classList.add('hidden');
+
+    try {
+        // Reutiliza a tua rota super segura do app.py
+        const res = await fetch('/api/trigger-relatorios', { method: 'POST' });        
+        if (!res.ok) {
+            const textoErro = await res.text();
+            try {
+                const jsonErro = JSON.parse(textoErro);
+                throw new Error(jsonErro.erro || 'Erro no servidor.');
+            } catch(e) {
+                throw new Error('O servidor Flask falhou. Verifica se foste primeiro ao Feed carregar as vagas na cache!');
+            }
+        }
+
+        const dados = await res.json();
+
+        // Mostrar bloco de sucesso com botão para ir para os relatórios
+        resultado.className = "mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm animate-fadeIn";
+        resultado.innerHTML = `
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span><strong>Sucesso!</strong> A rotina semanal correu para todos os utilizadores.</span>
+            </div>
+            <a href="/oportunidades?tab=relatorios" class="w-full sm:w-auto text-center text-xs font-bold px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-sm">
+                Ver nos Relatórios
+            </a>
+        `;
+        resultado.classList.remove('hidden');
+
+    } catch (err) {
+        alert("Erro ao testar relatório: " + err.message);
+    } finally {
+        // Restaurar botão
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+}
     </script>
 
 </body>

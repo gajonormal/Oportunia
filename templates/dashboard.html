@@ -988,6 +988,18 @@
                 lista.innerHTML = `<p class="text-sm text-red-500 text-center py-4">Erro ao carregar histórico: ${err.message}</p>`;
             }
         }
+
+
+        // ════════════════════════════════════════════════
+        // NOVO: Abrir Relatórios automaticamente via URL
+        // ════════════════════════════════════════════════
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('tab') === 'relatorios') {
+                // Força a mudança para a aba de relatórios assim que a página abre
+                switchTab('reports');
+            }
+        });
     </script>
 </body>
 

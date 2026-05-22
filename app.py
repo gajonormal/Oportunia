@@ -1,4 +1,5 @@
 from fpdf import FPDF
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify, request, render_template, session, redirect, url_for
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -779,6 +780,93 @@ def gerar_relatorio():
     except Exception as e:
         print(f"[ERRO CRITICAL NO PDF] {e}")
         return jsonify({"erro": f"Erro interno no servidor: {str(e)}"}), 500
+    
+
+    # ──────────────────────────────────────────────────────────────────
+# MOTOR AUTOMÁTICO: GERAÇÃO DE RELATÓRIOS SEMANAIS
+# ──────────────────────────────────────────────────────────────────
+def job_relatorios_semanais():
+    print("[SCHEDULER] A iniciar rotina de relatórios semanais...")
+    
+    # 1. Procurar todos os utilizadores com a flag "relatorio_semanal" a True
+    utilizadores = db["Utilizadores"].find({"notificacoes.relatorio_semanal": True})
+    
+    conn_str = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+    if not conn_str:
+        print("[SCHEDULER] ERRO: Chave do Azure Blob Storage não configurada.")
+        return
+        
+    blob_service_client = BlobServiceClient.from_connection_string(conn_str)
+    container_client = blob_service_client.get_container_client("relatorios")
+    if not container_client.exists():
+        container_client.create_container()
+
+    relatorios_gerados = 0
+
+    # 2. Iterar sobre os utilizadores que querem o relatório
+    for utilizador in utilizadores:
+        email = utilizador.get("email")
+        nome = utilizador.get("nome", "Estudante")
+        vagas = utilizador.get("cache_recomendacoes_ia", [])
+        
+        # Só gera se houverem recomendações da IA na cache
+        if not vagas:
+            print(f"[SCHEDULER] {email} ignorado: Sem vagas analisadas recentemente.")
+            continue
+            
+        try:
+            # 3. Gerar o PDF
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", 'B', 16)
+            pdf.cell(0, 10, "Oportunia - Relatorio Semanal", ln=True, align='C')
+            pdf.set_font("Arial", '', 12)
+            pdf.cell(0, 10, f"Estudante: {nome}", ln=True, align='C')
+            pdf.ln(10)
+            
+            for vaga in vagas[:5]:
+                pdf.set_font("Arial", 'B', 12)
+                titulo = vaga.get('titulo', 'Vaga').encode('latin-1', 'replace').decode('latin-1')
+                pdf.cell(0, 8, f"- {titulo}", ln=True)
+                
+                pdf.set_font("Arial", '', 10)
+                justificacao = vaga.get('justificacao_ai', '').encode('latin-1', 'replace').decode('latin-1')
+                pdf.multi_cell(0, 6, f"Porque: {justificacao}")
+                pdf.ln(5)
+                
+            pdf_bytes = pdf.output() 
+            
+            # 4. Guardar no Blob Storage
+            timestamp = datetime.utcnow().strftime("%Y%m%d%H%M")
+            blob_name = f"relatorio_semanal_{email.split('@')[0]}_{timestamp}.pdf"
+            
+            blob_client = blob_service_client.get_blob_client(container="relatorios", blob=blob_name)
+            blob_client.upload_blob(bytes(pdf_bytes), overwrite=True)
+            
+            # 5. Guardar histórico na Base de Dados
+            data_atual = datetime.utcnow().strftime("%d/%m/%Y %H:%M")
+            db["Utilizadores"].update_one(
+                {"email": email},
+                {"$push": {"relatorios": {"ficheiro": blob_name, "data": data_atual}}}
+            )
+            relatorios_gerados += 1
+            print(f"[SCHEDULER] Relatório gerado com sucesso para {email}.")
+            
+        except Exception as e:
+            print(f"[SCHEDULER] Erro ao gerar para {email}: {e}")
+
+    print(f"[SCHEDULER] Rotina terminada. Foram gerados {relatorios_gerados} relatórios.")
+
+# ROTA DE APRESENTAÇÃO (Botão de Pânico)
+@app.route("/api/trigger-relatorios", methods=["POST"])
+@login_required
+def trigger_relatorios():
+    try:
+        # Quando clicado, executa a rotina na hora!
+        job_relatorios_semanais()
+        return jsonify({"sucesso": True, "mensagem": "Rotina semanal ativada e concluída com sucesso!"})
+    except Exception as e:
+        return jsonify({"erro": str(e)}), 500
 
 @app.route("/api/relatorios/download/<blob_name>", methods=["GET"])
 @login_required
@@ -822,6 +910,15 @@ def obter_relatorios():
     except Exception as e:
         print(f"Erro ao obter histórico de relatórios: {e}")
         return jsonify({"erro": str(e)}), 500
-        
+
+
+        # ──────────────────────────────────────────────────────────────────
+# INICIALIZAR O AGENDADOR DE TAREFAS (CRON JOB)
+# ──────────────────────────────────────────────────────────────────
+scheduler = BackgroundScheduler(daemon=True)
+# Configurado para correr todas as Sextas-feiras às 18:00
+scheduler.add_job(func=job_relatorios_semanais, trigger="cron", day_of_week='fri', hour=18, minute=0)
+scheduler.start()
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True, use_reloader=False)
