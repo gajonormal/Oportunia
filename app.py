@@ -231,16 +231,33 @@ def get_recomendacoes():
     perfil_completo = bool(competencias or cadeiras or tipos)
 
     # 4. Limitar a 20 vagas enviadas à IA (evitar exceder limites de tokens)
-    #    Priorizar vagas cujos tipos coincidem com as preferências do utilizador
-    vagas_para_ia = vagas[:20]  # por defeito: as 20 primeiras
+    #    Priorizar vagas cuja localização ou tipo coincidem com as preferências do utilizador
+    def rank_vaga(v):
+        score = 0
+        v_local = str(v.get("local") or v.get("localizacao", "")).lower()
+        v_tipo = str(v.get("tipo", "")).lower()
+        
+        # Prioridade máxima: Localização (ou Remoto)
+        if localizacoes:
+            locs_lower = [l.lower() for l in localizacoes]
+            # Se a vaga contiver alguma das localizações escolhidas ou for remota
+            if any(l in v_local for l in locs_lower) or "remoto" in v_local:
+                score += 2
+                
+        # Prioridade média: Tipo de Oportunidade
+        if tipos:
+            tipos_lower = [t.lower() for t in tipos]
+            if any(t in v_tipo for t in tipos_lower):
+                score += 1
+                
+        return score
 
-    if tipos:
-        tipos_lower = [t.lower() for t in tipos]
-        vagas_match = [v for v in vagas if str(v.get("tipo", "")).lower() in tipos_lower]
-        vagas_resto = [v for v in vagas if str(v.get("tipo", "")).lower() not in tipos_lower]
-        vagas_para_ia = (vagas_match + vagas_resto)[:20]
+    # Ordenar as vagas por score (maior para menor)
+    if localizacoes or tipos:
+        vagas.sort(key=rank_vaga, reverse=True)
 
-    vagas_restantes = [v for v in vagas if v not in vagas_para_ia]
+    vagas_para_ia = vagas[:20]
+    vagas_restantes = vagas[20:]
 
     # 5. Construir resumo compacto das vagas para o prompt
     vagas_resumo = []
