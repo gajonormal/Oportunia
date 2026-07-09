@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Microsoft_Azure-0089D6?style=for-the-badge&logo=microsoft-azure&logoColor=white" alt="Azure">
   <img src="https://img.shields.io/badge/Azure_Cosmos_DB-31A8FF?style=for-the-badge&logo=microsoft-azure&logoColor=white" alt="Azure Cosmos DB">
 </div>
-
+<br>
 **Assistente de Carreira para Estudantes de Informática Portugueses**
 
 Plataforma cloud-native que agrega e personaliza oportunidades profissionais e académicas — estágios, empregos entry-level, bolsas de estudo e eventos tecnológicos — para estudantes de Engenharia Informática em Portugal.
