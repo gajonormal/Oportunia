@@ -1,4 +1,4 @@
-# Oportunia ![Logo Oportunia](static/logo.png)
+# Oportunia <img src="static/logo.png" width="200" alt="Logo Oportunia">
 
 **Assistente de Carreira para Estudantes de Informática Portugueses**
 
