@@ -1,4 +1,4 @@
-# Oportunia
+# Oportunia ![Logo Oportunia](static/logo.png)
 
 **Assistente de Carreira para Estudantes de Informática Portugueses**
 
