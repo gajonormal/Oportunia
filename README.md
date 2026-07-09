@@ -1,4 +1,6 @@
-# Oportunia <img src="static/logo.png" width="200" alt="Logo Oportunia">
+# Oportunia 
+
+<img src="static/logo.png" width="200" alt="Logo Oportunia">
 
 **Assistente de Carreira para Estudantes de Informática Portugueses**
 
